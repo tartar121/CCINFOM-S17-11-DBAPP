@@ -17,7 +17,7 @@ public class Customer {
     {
         return customer_id;
     }
-    public String getcustomer_name()
+    public String getName()
     {
         return customer_name;
     }
