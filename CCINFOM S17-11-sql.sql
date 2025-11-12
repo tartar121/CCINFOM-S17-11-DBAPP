@@ -11,19 +11,18 @@ DROP TABLE IF EXISTS supplier;
 DROP TABLE IF EXISTS customer;
 
 CREATE TABLE medicine (
-	medicine_id INT NOT NULL auto_increment,
+	medicine_id INT NOT NULL,
     medicine_name VARCHAR(50) NOT NULL,
     price_bought DECIMAL(10, 2) NOT NULL CHECK (price_bought>=0),
     price_for_sale DECIMAL(10,2) NOT NULL CHECK (price_for_sale>=0),
     quantity_in_stock INT NOT NULL CHECK (quantity_in_stock>=0),
     expiration_date DATE NOT NULL,
     discontinued BOOLEAN DEFAULT FALSE,
-    medicine_delivery_date DATE NOT NULL,
     PRIMARY KEY (medicine_id)
 );
 
 CREATE TABLE supplier (
-	supplier_id INT NOT NULL auto_increment,
+	supplier_id INT NOT NULL,
     supplier_name VARCHAR(100) NOT NULL,
     supplier_address VARCHAR(150) NOT NULL,
     supplier_contact_info VARCHAR(100) NOT NULL, -- email of supplier
@@ -32,7 +31,7 @@ CREATE TABLE supplier (
 );
 
 CREATE TABLE customer(
-	customer_id INT NOT NULL auto_increment,
+	customer_id INT NOT NULL,
     customer_name VARCHAR(100) NOT NULL,
     customer_contact_info VARCHAR(100) NOT NULL, -- email of customer
     senior_pwd_id INT UNIQUE,
@@ -93,11 +92,12 @@ FOREIGN KEY (supplier_id) REFERENCES supplier (supplier_id)
 CREATE TABLE return_details(
 return_no INT NOT NULL,
 medicine_id INT NOT NULL,
+delivery_no INT NOT NULL,
 price_returned DECIMAL(10,2) NOT NULL CHECK (price_returned>0),
 quantity_returned INT NOT NULL CHECK (quantity_returned>0),
-PRIMARY KEY (return_no, medicine_id),
+PRIMARY KEY (return_no, medicine_id, delivery_no),
 FOREIGN KEY (return_no) REFERENCES `return`(return_no),
-FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id) 
+FOREIGN KEY (medicine_id, delivery_no) REFERENCES delivery_details(medicine_id, delivery_no) 
 );
 -- Prevent selling discontinued or expired medicine
 DELIMITER $$
