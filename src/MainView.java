@@ -12,6 +12,7 @@ public class MainView extends JFrame {
 
     private JPanel homePanel;
     private MedicinePanel medicinePanel; // separate panel for medicines
+    private SupplierPanel supplierPanel;
 
     public MainView() {
         setTitle("Pharmacy Management System");
@@ -27,15 +28,20 @@ public class MainView extends JFrame {
         homePanel.setLayout(new GridBagLayout());
         JButton medButton = new JButton("Medicine Management");
         medButton.addActionListener(e -> cardLayout.show(mainPanel, "medicinePanel"));
+        JButton supButton = new JButton("Supplier Management");
+        supButton.addActionListener(e -> cardLayout.show(mainPanel, "supplierPanel"));
 
         homePanel.add(medButton);
+        homePanel.add(supButton);
 
         // ===== Medicine Panel =====
         medicinePanel = new MedicinePanel(this);
+        supplierPanel = new SupplierPanel(this);
 
         // ===== Add panels to main panel =====
         mainPanel.add(homePanel, "homePanel");
         mainPanel.add(medicinePanel, "medicinePanel");
+        mainPanel.add(supplierPanel, "supplierPanel");
 
         add(mainPanel);
         cardLayout.show(mainPanel, "homePanel"); // show home first
@@ -43,9 +49,5 @@ public class MainView extends JFrame {
 
     public void goHome() {
         cardLayout.show(mainPanel, "homePanel");
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MainView().setVisible(true));
     }
 }
