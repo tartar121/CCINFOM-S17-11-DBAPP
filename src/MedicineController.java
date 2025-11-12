@@ -1,10 +1,9 @@
 import java.sql.*;
 import java.util.*;
-import java.sql.Date;
-import java.time.LocalDate;
 public class MedicineController
 {
-    public Medicine getMedicineById(int id) throws SQLException {
+    public Medicine getMedicineById(int id) throws SQLException 
+    {
         Connection con = Database.connectdb();
         String sql = "SELECT * FROM medicine WHERE medicine_id=?";
         PreparedStatement ps = con.prepareStatement(sql);
@@ -42,7 +41,8 @@ public class MedicineController
         pstmt.executeUpdate();
         con.close();
     }
-    public void updateMedicine(Medicine m) throws SQLException {
+    public void updateMedicine(Medicine m) throws SQLException 
+    {
         Connection con = Database.connectdb();
     
         // SQL updates all fields except ID in the row with medicine_id
