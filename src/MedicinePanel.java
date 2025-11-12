@@ -21,7 +21,7 @@ public class MedicinePanel extends JPanel {
 
         // ===== Top Form Panel =====
         JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Add Medicine"));
+        formPanel.setBorder(BorderFactory.createTitledBorder("Add/View/Update Medicine (cannot delete, if you want to delete change discontinued to true)"));
 
         idField = new JTextField();
         nameField = new JTextField();
