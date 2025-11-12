@@ -11,7 +11,7 @@ public class MedicinePanel extends JPanel {
     private MedicineController medcontroller;
     private JTable medtable;
     private DefaultTableModel tableModel;
-    private JTextField idField, nameField, priceBoughtField, priceSaleField, qtyField, expDateField;
+    private JTextField idField, nameField, priceBoughtField, priceSaleField, qtyField, expDateField, disField;
     private MainView mainView;
 
     public MedicinePanel(MainView mainView) {
@@ -20,7 +20,7 @@ public class MedicinePanel extends JPanel {
         setLayout(new BorderLayout());
 
         // ===== Top Form Panel =====
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
         formPanel.setBorder(BorderFactory.createTitledBorder("Add Medicine"));
 
         idField = new JTextField();
@@ -29,6 +29,7 @@ public class MedicinePanel extends JPanel {
         priceSaleField = new JTextField();
         qtyField = new JTextField();
         expDateField = new JTextField();
+        disField = new JTextField();
 
         formPanel.add(new JLabel("ID"));
         formPanel.add(idField);
@@ -42,6 +43,8 @@ public class MedicinePanel extends JPanel {
         formPanel.add(qtyField);
         formPanel.add(new JLabel("Expiration (YYYY-MM-DD)"));
         formPanel.add(expDateField);
+        formPanel.add(new JLabel("Discontinued (false/true)"));
+        formPanel.add(disField);
 
         add(formPanel, BorderLayout.NORTH);
 
@@ -49,10 +52,16 @@ public class MedicinePanel extends JPanel {
         JPanel buttonPanel = new JPanel();
         JButton addButton = new JButton("Add Medicine");
         addButton.addActionListener(e -> addMedicine());
+        JButton updateButton = new JButton("Update Medicine");
+        updateButton.addActionListener(e -> updateMedicine());
+        JButton viewButton = new JButton("View Medicine");
+        viewButton.addActionListener(e -> viewMedicine());
         JButton homeButton = new JButton("Back to Home");
         homeButton.addActionListener(e -> mainView.goHome());
 
         buttonPanel.add(addButton);
+        buttonPanel.add(updateButton);
+        buttonPanel.add(viewButton);
         buttonPanel.add(homeButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
@@ -81,8 +90,9 @@ public class MedicinePanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Invalid expiration date format. Use YYYY-MM-DD.");
                 return;
             }
-
-            medcontroller.addMedicine(new Medicine(id, name, priceBought, priceForSale, qty, expDate, false));
+            String dis= disField.getText().trim().toLowerCase();
+            boolean discontinued = dis.equals("true");
+            medcontroller.addMedicine(new Medicine(id, name, priceBought, priceForSale, qty, expDate, discontinued));
             JOptionPane.showMessageDialog(this, "Medicine added successfully!");
             clearFields();
             loadMedicines();
@@ -93,6 +103,66 @@ public class MedicinePanel extends JPanel {
         }
     }
 
+    private void updateMedicine() {
+        try {
+            int id = Integer.parseInt(idField.getText().trim());
+            Medicine current = medcontroller.getMedicineById(id);
+            if (current == null) {
+                JOptionPane.showMessageDialog(this, "Medicine ID not found.");
+                return;
+            }
+    
+            String name = nameField.getText().trim().isEmpty() ? current.getName() : nameField.getText().trim();
+            double priceBought = priceBoughtField.getText().trim().isEmpty() ? current.getPriceBought()
+                    : Double.parseDouble(priceBoughtField.getText().trim());
+            double priceForSale = priceSaleField.getText().trim().isEmpty() ? current.getPriceForSale()
+                    : Double.parseDouble(priceSaleField.getText().trim());
+            int qty = qtyField.getText().trim().isEmpty() ? current.getQuantity()
+                    : Integer.parseInt(qtyField.getText().trim());
+            LocalDate expDate = expDateField.getText().trim().isEmpty() ? current.getExpirationDate()
+                    : LocalDate.parse(expDateField.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String dis = disField.getText().trim().toLowerCase();
+            boolean discontinued = dis.isEmpty() ? current.isDiscontinued() : dis.equals("true");
+    
+            Medicine updated = new Medicine(id, name, priceBought, priceForSale, qty, expDate, discontinued);
+            medcontroller.updateMedicine(updated);
+    
+            JOptionPane.showMessageDialog(this, "Medicine updated successfully!");
+            clearFields();
+            loadMedicines();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter valid numeric values.");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
+        }
+    }
+
+
+    private void viewMedicine() {
+        try {
+            int id = Integer.parseInt(idField.getText().trim());
+    
+            // Fetch medicine from database
+            Medicine m = medcontroller.getMedicineById(id);
+            if (m == null) {
+                JOptionPane.showMessageDialog(this, "Medicine ID not found.");
+                return;
+            }
+    
+            // Display in fields
+            nameField.setText(m.getName());
+            priceBoughtField.setText(String.valueOf(m.getPriceBought()));
+            priceSaleField.setText(String.valueOf(m.getPriceForSale()));
+            qtyField.setText(String.valueOf(m.getQuantity()));
+            expDateField.setText(m.getExpirationDate().toString());
+            disField.setText(String.valueOf(m.isDiscontinued()));
+    
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid numeric ID.");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
+        }
+    }
     private void loadMedicines() {
         tableModel.setRowCount(0);
         try {
@@ -115,5 +185,6 @@ public class MedicinePanel extends JPanel {
         priceSaleField.setText("");
         qtyField.setText("");
         expDateField.setText("");
+        disField.setText("");
     }
 }
