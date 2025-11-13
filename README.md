@@ -1,7 +1,5 @@
-# CCINFOM-S17-12-DBAPP
-
-## Pharmacy Management System
-This repository contains the database application project for the CCINFOM S17 (Information Management) course at De La Salle University.
+# Pharmacy Management System
+This repository contains the database application project in partial fulfillment for the **CCINFOM (Information Management)** course at **De La Salle University.**
 The system is built using Java and SQL to provide a structured solution for managing a pharmacy's complex data.
 
 ## Key Features
