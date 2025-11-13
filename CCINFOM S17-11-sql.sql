@@ -63,7 +63,7 @@ delivery_no INT NOT NULL auto_increment,
 supplier_id INT NOT NULL,
 request_date DATE NOT NULL,
 shipped_date DATE,
-delivery_status ENUM('Requested','Shipped','Delivered','Cancelled'),
+delivery_status ENUM('Delivered','Cancelled'),
 PRIMARY KEY (delivery_no),
 FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id)
 );
@@ -84,7 +84,7 @@ supplier_id INT NOT NULL,
 reason VARCHAR(250) NOT NULL,
 request_date DATE,
 shipped_date DATE,
-return_status ENUM('Requested','Approved','Rejected','Returned','Cancelled'),
+return_status ENUM('Returned','Cancelled'),
 PRIMARY KEY (return_no),
 FOREIGN KEY (supplier_id) REFERENCES supplier (supplier_id)
 );
