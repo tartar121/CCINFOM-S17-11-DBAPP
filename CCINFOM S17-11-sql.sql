@@ -18,7 +18,8 @@ CREATE TABLE medicine (
     quantity_in_stock INT NOT NULL CHECK (quantity_in_stock>=0),
     expiration_date DATE NOT NULL,
     discontinued BOOLEAN DEFAULT FALSE,
-    PRIMARY KEY (medicine_id)
+    PRIMARY KEY (medicine_id),
+    UNIQUE (medicine_name, expiration_date)
 );
 
 CREATE TABLE supplier (
@@ -74,8 +75,12 @@ medicine_id INT NOT NULL,
 quantity INT NOT NULL CHECK (quantity>0),
 total DECIMAL(10,2),
 PRIMARY KEY (delivery_no, medicine_id),
-FOREIGN KEY (delivery_no) REFERENCES delivers (delivery_no),
+FOREIGN KEY (delivery_no) REFERENCES delivers (delivery_no)
+		ON DELETE CASCADE
+        ON UPDATE CASCADE,
 FOREIGN KEY (medicine_id) REFERENCES medicine (medicine_id)
+		ON DELETE RESTRICT
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE `return`(
