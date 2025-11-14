@@ -5,7 +5,8 @@ public class ReturnController {
     public Return getReturnByNo(int rNo) throws SQLException
     {
         Connection con = Database.connectdb();
-        String sql = "SELECT * FROM returns WHERE return_no=?";
+        String sql = "SELECT * FROM `return` WHERE return_no=?"; 
+        // add backticks for reserved word RETURN so it should be `return`
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setInt(1, rNo);
         ResultSet rs = ps.executeQuery();
@@ -28,7 +29,7 @@ public class ReturnController {
     public void addReturn(Return r) throws SQLException
     {
         Connection con=Database.connectdb();
-        String sql="INSERT INTO returns (return_no, supplier_id, reason, request_date, shipped_date, return_status)"
+        String sql="INSERT INTO `return` (return_no, supplier_id, reason, request_date, shipped_date, return_status)"
         + "VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement pstmt=con.prepareStatement(sql);
         pstmt.setInt(1, r.getReturnNo());
@@ -46,7 +47,7 @@ public class ReturnController {
         Connection con = Database.connectdb();
 
         // SQL updates all fields except ID in the row with return_no
-        String sql = "UPDATE returns SET supplier_id=?, reason=?, request_date=?, shipped_date=?, return_status=? WHERE return_no=?";
+        String sql = "UPDATE `return` SET supplier_id=?, reason=?, request_date=?, shipped_date=?, return_status=? WHERE return_no=?";
         PreparedStatement ps = con.prepareStatement(sql);
 
         ps.setInt(1, r.getSupplierId());
@@ -64,7 +65,7 @@ public class ReturnController {
     {
         List<Return> returns = new ArrayList<>();
         Connection con = Database.connectdb();
-        String sql = "SELECT * FROM returns";
+        String sql = "SELECT * FROM `return`";
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
