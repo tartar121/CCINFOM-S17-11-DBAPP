@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS supplier;
 DROP TABLE IF EXISTS customer;
 
 CREATE TABLE medicine (
-	medicine_id INT NOT NULL,
+	medicine_id INT NOT NULL auto_increment,
     medicine_name VARCHAR(50) NOT NULL,
     price_bought DECIMAL(10, 2) NOT NULL CHECK (price_bought>=0),
     price_for_sale DECIMAL(10,2) NOT NULL CHECK (price_for_sale>=0),
@@ -23,7 +23,7 @@ CREATE TABLE medicine (
 );
 
 CREATE TABLE supplier (
-	supplier_id INT NOT NULL,
+	supplier_id INT NOT NULL auto_increment,
     supplier_name VARCHAR(100) NOT NULL,
     supplier_address VARCHAR(150) NOT NULL,
     supplier_contact_info VARCHAR(100) NOT NULL, -- email of supplier
@@ -32,7 +32,7 @@ CREATE TABLE supplier (
 );
 
 CREATE TABLE customer(
-	customer_id INT NOT NULL,
+	customer_id INT NOT NULL auto_increment,
     customer_name VARCHAR(100) NOT NULL,
     customer_contact_info VARCHAR(100) NOT NULL, -- email of customer
     senior_pwd_id INT UNIQUE,
@@ -75,12 +75,8 @@ medicine_id INT NOT NULL,
 quantity INT NOT NULL CHECK (quantity>0),
 total DECIMAL(10,2),
 PRIMARY KEY (delivery_no, medicine_id),
-FOREIGN KEY (delivery_no) REFERENCES delivers (delivery_no)
-		ON DELETE CASCADE
-        ON UPDATE CASCADE,
+FOREIGN KEY (delivery_no) REFERENCES delivers (delivery_no),
 FOREIGN KEY (medicine_id) REFERENCES medicine (medicine_id)
-		ON DELETE RESTRICT
-        ON UPDATE CASCADE
 );
 
 CREATE TABLE `return`(
