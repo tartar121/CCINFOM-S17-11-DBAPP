@@ -26,13 +26,13 @@ public class CustomerPanel extends JPanel {
         pwdField = new JTextField();
         statusField = new JTextField();
 
-        formPanel.add(new JLabel("ID"));
+        formPanel.add(new JLabel("ID (for updates)"));
         formPanel.add(idField);
         formPanel.add(new JLabel("Name"));
         formPanel.add(nameField);
         formPanel.add(new JLabel("Contact info (email)"));
         formPanel.add(contactField);
-        formPanel.add(new JLabel("Senior or pwd id"));
+        formPanel.add(new JLabel("Senior or PWD ID (blank if none)"));
         formPanel.add(pwdField);
         formPanel.add(new JLabel("Status (active/inactive)"));
         formPanel.add(statusField);
@@ -67,7 +67,6 @@ public class CustomerPanel extends JPanel {
 
     private void addCustomer() {
         try {
-            int id = Integer.parseInt(idField.getText().trim());
             String name = nameField.getText().trim();
             String contact = contactField.getText().trim();
             int pwd;
@@ -77,7 +76,7 @@ public class CustomerPanel extends JPanel {
             } else {
                 pwd = Integer.parseInt(pwdInput); }
             String status = statusField.getText().trim();
-            cuscontroller.addCustomer(new Customer(id, name, contact, pwd, status));
+            cuscontroller.addCustomer(new Customer(0, name, contact, pwd, status));
             JOptionPane.showMessageDialog(this, "Customer added successfully!");
             clearFields();
             loadCustomers();

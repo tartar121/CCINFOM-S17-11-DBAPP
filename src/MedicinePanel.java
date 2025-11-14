@@ -31,7 +31,7 @@ public class MedicinePanel extends JPanel {
         expDateField = new JTextField();
         disField = new JTextField();
 
-        formPanel.add(new JLabel("ID"));
+        formPanel.add(new JLabel("ID (for updates)"));
         formPanel.add(idField);
         formPanel.add(new JLabel("Name"));
         formPanel.add(nameField);
@@ -76,7 +76,6 @@ public class MedicinePanel extends JPanel {
 
     private void addMedicine() {
         try {
-            int id = Integer.parseInt(idField.getText().trim());
             String name = nameField.getText().trim();
             double priceBought = Double.parseDouble(priceBoughtField.getText().trim());
             double priceForSale = Double.parseDouble(priceSaleField.getText().trim());
@@ -92,7 +91,7 @@ public class MedicinePanel extends JPanel {
             }
             String dis= disField.getText().trim().toLowerCase();
             boolean discontinued = dis.equals("true");
-            medcontroller.addMedicine(new Medicine(id, name, priceBought, priceForSale, qty, expDate, discontinued));
+            medcontroller.addMedicine(new Medicine(0, name, priceBought, priceForSale, qty, expDate, discontinued));
             JOptionPane.showMessageDialog(this, "Medicine added successfully!");
             clearFields();
             loadMedicines();

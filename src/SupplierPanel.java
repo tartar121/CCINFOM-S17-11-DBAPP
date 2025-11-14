@@ -26,7 +26,7 @@ public class SupplierPanel extends JPanel {
         contactField = new JTextField();
         statusField = new JTextField();
 
-        formPanel.add(new JLabel("ID"));
+        formPanel.add(new JLabel("ID (for updates)"));
         formPanel.add(idField);
         formPanel.add(new JLabel("Name"));
         formPanel.add(nameField);
@@ -67,12 +67,11 @@ public class SupplierPanel extends JPanel {
 
     private void addSupplier() {
         try {
-            int id = Integer.parseInt(idField.getText().trim());
             String name = nameField.getText().trim();
             String address = addressField.getText().trim();
             String contact = contactField.getText().trim();
             String status = statusField.getText().trim();
-            supcontroller.addSupplier(new Supplier(id, name, address, contact, status));
+            supcontroller.addSupplier(new Supplier(0, name, address, contact, status));
             JOptionPane.showMessageDialog(this, "Supplier added successfully!");
             clearFields();
             loadSuppliers();
