@@ -63,7 +63,7 @@ public class PurchaseController
     
         ps.setDate(1, java.sql.Date.valueOf(p.getPurchaseDate()));
         ps.setInt(2, p.getCustomerId());
-    
+        ps.setInt(3, p.getPurchaseNo());
         ps.executeUpdate();
         con.close();
     }
