@@ -12,12 +12,10 @@ public class ReturnableItem {
     private int deliveryNo;
     private LocalDate shippedDate;
     private double priceBought;
-    private int return_no;
-    private double total;
 
     public ReturnableItem(int medicineId, String medName, int qty,
                           LocalDate expDate, int delNo,
-                          LocalDate shipDate, double priceBought, int return_no) {
+                          LocalDate shipDate, double priceBought) {
         this.medicineId = medicineId;
         this.medicineName = medName;
         this.quantity = qty;
@@ -25,9 +23,8 @@ public class ReturnableItem {
         this.deliveryNo = delNo;
         this.shippedDate = shipDate;
         this.priceBought = priceBought;
-        this.return_no = return_no;
-        total=priceBought*quantity;
     }
+
     // Getters
     public int getMedicineId() { return medicineId; }
     public String getMedicineName() { return medicineName; }
@@ -36,12 +33,5 @@ public class ReturnableItem {
     public int getDeliveryNo() { return deliveryNo; }
     public LocalDate getShippedDate() { return shippedDate; }
     public double getPriceBought() { return priceBought; }
-    public int getreturn_no()
-    {
-        return return_no;
-    }
-    public double gettotal()
-    {
-        return total;
-    }
+
 }
