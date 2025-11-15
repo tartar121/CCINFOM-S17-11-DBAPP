@@ -42,7 +42,7 @@ public class CreateReturnPanel extends JPanel {
         add(topPanel, BorderLayout.NORTH);
 
         // ===== Center Panel (Items Table) =====
-        String[] columns = {"Return No.", "Medicine ID", "Medicine Name", "Delivery No", "Price Returned", "Quantyty Returned"};
+        String[] columns = {"Batch ID", "Name", "Exp. Date", "Qty", "Delivery No", "Shipped Date"};
         tableModel = new DefaultTableModel(columns, 0) {
             // Make table cells not editable
             @Override
@@ -50,7 +50,6 @@ public class CreateReturnPanel extends JPanel {
                 return false;
             }
         };
-        loadReturns();
         returnableItemsTable = new JTable(tableModel);
         
         add(new JScrollPane(returnableItemsTable), BorderLayout.CENTER);
@@ -133,30 +132,13 @@ public class CreateReturnPanel extends JPanel {
                 
                 // 2. This is your "Generating a receipt"
                 JOptionPane.showMessageDialog(this, "Return processed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                loadReturns();
                 clearForm();
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Transaction Failed: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
-    private void loadReturns()
-    {
-        tableModel.setRowCount(0);
-        try{
-            List<ReturnableItem> returns=controller.getAllReturns();
-            for (ReturnableItem r: returns)
-            {
-                tableModel.addRow(new Object[]{
-                    r.getreturn_no(), r.getMedicineId(), r.getMedicineName(), r.getDeliveryNo(), r.gettotal(), r.getQuantity()
-                });
-            }
-
-        }
-        catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error loading returns: " + e.getMessage());
-        }
-    }
+    
     private void clearForm() {
         supplierIdField.setText("");
         tableModel.setRowCount(0);
