@@ -149,10 +149,34 @@ public class PurchasePanel extends JPanel {
                     : LocalDate.parse(purDateField.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             int cId = cIdField.getText().trim().isEmpty() ? current.getCustomerId()
                     : Integer.parseInt(cIdField.getText().trim());
-            
-    
-            Purchase updated = new Purchase(pNo, purDate, cId);
-            purcontroller.updatePurchase(updated);
+            PurchaseDetails currentPD = purcontroller.getPurchaseDetailsByPurchaseNo(pNo).get(0);
+            int mId = mIdField.getText().trim().isEmpty() ? currentPD.getMedicineId()
+                : Integer.parseInt(mIdField.getText().trim());
+            int qty = qtyField.getText().trim().isEmpty() ? currentPD.getQuantityOrder()
+                : Integer.parseInt(qtyField.getText().trim());
+            Double discount = discountField.getText().trim().isEmpty() ? currentPD.getDiscount()
+                : Double.parseDouble(discountField.getText().trim());
+            double total = totalField.getText().trim().isEmpty() ? currentPD.getTotal()
+                : Double.parseDouble(totalField.getText().trim());
+
+
+            Medicine med = medcontroller.getMedicineById(mId);
+            if (med == null) {
+                JOptionPane.showMessageDialog(this, "Medicine not found.");
+                return;
+            }
+            /*if (med.isDiscontinued()) {
+                JOptionPane.showMessageDialog(this, "Medicine has been discontinued.");
+                return;
+            } */
+            if (med.getExpirationDate() != null && med.getExpirationDate().isBefore(purDate)) {
+                JOptionPane.showMessageDialog(this, "Medicine has expired.");
+                return;
+            }
+            Purchase updatedP = new Purchase(pNo, purDate, cId);
+            PurchaseDetails updatedPD = new PurchaseDetails(pNo, mId, qty, discount, total);
+            purcontroller.updatePurchase(updatedP);
+            purcontroller.updatePurchaseDetails(updatedPD);
             JOptionPane.showMessageDialog(this, "Purchase updated successfully!");
             clearFields();
             loadPurchases();
