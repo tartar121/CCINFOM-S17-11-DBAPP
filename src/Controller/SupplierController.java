@@ -64,12 +64,13 @@ public class SupplierController
     public void updateSupplier(Supplier s) throws SQLException 
     {
         Connection con=Database.connectdb();
-        String sql="UPDATE supplier SET supplier_name=?, supplier_address, supplier_contact_info=?, supplier_status=? WEHRE supplier_id=?";
+        String sql="UPDATE supplier SET supplier_name=?, supplier_address=?, supplier_contact_info=?, supplier_status=? WHERE supplier_id=?";
         PreparedStatement pstmt=con.prepareStatement(sql);
         pstmt.setString(1, s.getName());
         pstmt.setString(2, s.getAddress());
         pstmt.setString(3, s.getContactInfo());
         pstmt.setString(4, s.getStatus());
+        pstmt.setInt(5, s.getId());
         pstmt.executeUpdate();
         con.close();
     }

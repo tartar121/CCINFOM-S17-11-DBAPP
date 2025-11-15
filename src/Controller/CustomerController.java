@@ -69,7 +69,7 @@ public class CustomerController
     public void updateCustomer(Customer c) throws SQLException 
     {
         Connection con=Database.connectdb();
-        String sql="UPDATE customer SET customer_name=?, customer_contact_info=?, senior_pwd_id=?, customer_status=? WHERE customer_id?";
+        String sql="UPDATE customer SET customer_name=?, customer_contact_info=?, senior_pwd_id=?, customer_status=? WHERE customer_id=?";
         PreparedStatement pstmt=con.prepareStatement(sql);
         pstmt.setString(1, c.getName());
         pstmt.setString(2, c.getContactInfo());
@@ -80,7 +80,7 @@ public class CustomerController
         }
         pstmt.setInt(3, c.getPwdId());
         pstmt.setString(4, c.getStatus());
-        //pstmt.setInt(5, c.getId());
+        pstmt.setInt(5, c.getId());
         pstmt.executeUpdate();
         con.close();
     }
