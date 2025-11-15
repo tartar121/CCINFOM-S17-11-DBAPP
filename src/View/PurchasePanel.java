@@ -2,6 +2,9 @@ package View;
 
 import Model.Purchase;
 import Model.PurchaseDetails;
+import Model.Customer;
+import Model.Medicine;
+import Controller.CustomerController;
 import Controller.MedicineController;
 import Controller.PurchaseController;
 
@@ -21,6 +24,8 @@ import javax.swing.text.Document;
 
 public class PurchasePanel extends JPanel {
     private PurchaseController purcontroller;
+    private CustomerController cuscontroller;
+    private MedicineController medcontroller;
     private JTable purtable;
     private DefaultTableModel tableModel;
     private JTextField pNoField, purDateField, cIdField, mIdField, qtyField, discountField, totalField;
@@ -29,6 +34,8 @@ public class PurchasePanel extends JPanel {
     public PurchasePanel(MainView mainView) {
         this.mainView = mainView;
         purcontroller = new PurchaseController();
+        cuscontroller = new CustomerController();
+        medcontroller = new MedicineController();
         setLayout(new BorderLayout());
 
         // ===== Top Form Panel =====
@@ -40,6 +47,7 @@ public class PurchasePanel extends JPanel {
         mIdField = new JTextField();
         qtyField = new JTextField();
         discountField = new JTextField();
+        discountField.setEditable(false); 
         totalField = new JTextField();
         totalField.setEditable(false); 
 
@@ -59,6 +67,8 @@ public class PurchasePanel extends JPanel {
         formPanel.add(totalField);
 
         add(formPanel, BorderLayout.NORTH);
+
+        generatePurchaseNo();
         DocumentListener docListener = new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { calculateTotal(); }
             public void removeUpdate(DocumentEvent e) { calculateTotal(); }
@@ -95,7 +105,7 @@ public class PurchasePanel extends JPanel {
 
     private void addPurchase() {
         try {
-            int pNo = Integer.parseInt(pNoField.getText().trim());
+            int pNo = Integer.parseInt(pNoField.getText().trim()); 
             String purStr = purDateField.getText().trim();
             LocalDate purDate;
             try {
@@ -113,10 +123,11 @@ public class PurchasePanel extends JPanel {
             if (!disText.isEmpty()) {
                 dis = Double.parseDouble(disText);
             }
-            double total = Float.parseFloat(totalField.getText().trim());
+            double total = Double.parseDouble(totalField.getText().trim());
             purcontroller.addPurchase(new Purchase(pNo, purDate, cId), new PurchaseDetails(pNo, mId, qty, dis, total));
             JOptionPane.showMessageDialog(this, "Purchase added successfully!");
             clearFields();
+            generatePurchaseNo();
             loadPurchases();
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter valid numeric values for ID.");
@@ -142,7 +153,6 @@ public class PurchasePanel extends JPanel {
     
             Purchase updated = new Purchase(pNo, purDate, cId);
             purcontroller.updatePurchase(updated);
-    
             JOptionPane.showMessageDialog(this, "Purchase updated successfully!");
             clearFields();
             loadPurchases();
@@ -164,11 +174,20 @@ public class PurchasePanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Purchase No not found.");
                 return;
             }
-    
+            Medicine m = medcontroller.getMedicine(pNo);
+            List<PurchaseDetails> details = purcontroller.getPurchaseDetailsByPurchaseNo(pNo);
+
             // Display in fields
             purDateField.setText(p.getPurchaseDate().toString());
             cIdField.setText(String.valueOf(p.getCustomerId()));
-    
+            mIdField.setText(String.valueOf(m.getId()));
+            for (PurchaseDetails pd : details) {
+                qtyField.setText(String.valueOf(pd.getQuantityOrder()));
+                discountField.setText(String.valueOf(pd.getDiscount()));
+                totalField.setText(String.valueOf(pd.getTotal()));
+            }
+
+            
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid numeric ID.");
         } catch (SQLException ex) {
@@ -181,27 +200,19 @@ public class PurchasePanel extends JPanel {
             List<Purchase> pur = purcontroller.getAllPurchases();
             for (Purchase p : pur) {
                 List<PurchaseDetails> details = purcontroller.getPurchaseDetailsByPurchaseNo(p.getPurchaseNo());
-                if (details.isEmpty()) {
+                for (PurchaseDetails pd : details) {
+                    Object discountValue = (pd.getDiscount() == null || pd.getDiscount() == 0) ? "NULL" : pd.getDiscount();
                     tableModel.addRow(new Object[]{
                         p.getPurchaseNo(),
                         p.getPurchaseDate(),
                         p.getCustomerId(),
-                        "", "", "", ""
-                    });
-                } else {
-                    for (PurchaseDetails pd : details) {
-                        Object discount = pd.getDiscount() < 0 ? "NULL" : pd.getDiscount();
-                        tableModel.addRow(new Object[]{
-                            p.getPurchaseNo(),
-                            p.getPurchaseDate(),
-                            p.getCustomerId(),
-                            pd.getMedicineId(),
-                            pd.getQuantityOrder(),
-                            pd.getDiscount(),
-                            pd.getTotal()
+                        pd.getMedicineId(),
+                        pd.getQuantityOrder(),
+                        discountValue,
+                        pd.getTotal()
                         });
                     }
-                }
+                
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error loading purchases: " + e.getMessage());
@@ -209,7 +220,6 @@ public class PurchasePanel extends JPanel {
     }
 
     private void clearFields() {
-        pNoField.setText("");
         purDateField.setText("");
         cIdField.setText("");
         mIdField.setText(""); 
@@ -219,19 +229,41 @@ public class PurchasePanel extends JPanel {
     }
     private void calculateTotal() {
         try {
-            int mId = Integer.parseInt(mIdField.getText().trim());
-            int qty = Integer.parseInt(qtyField.getText().trim());
-            double discount = 0;
-            String disText = discountField.getText().trim();
-            if (!disText.isEmpty()) {
-                discount = Double.parseDouble(disText);
-            }
-            double price = new MedicineController().getSalePrice(mId);
-            double total = price*qty*(1-discount/100);
-        
+            String qtyText = qtyField.getText().trim();
+            String mIdText = mIdField.getText().trim();
+            String cIdText = cIdField.getText().trim();
+
+            if (qtyText.isEmpty() || mIdText.isEmpty()) return;
+
+            int qty = Integer.parseInt(qtyText);
+            int mid = Integer.parseInt(mIdText);
+
+            Medicine m = medcontroller.getMedicineById(mid);
+            if (m == null) return;
+
+            double price = m.getPriceForSale();
+            double discount = 0.0;
+
+            if (!cIdText.isEmpty()) {
+                int cId = Integer.parseInt(cIdText);
+                Customer c = cuscontroller.getCustomerbyId(cId);
+                if (c != null && c.getPwdId() != 0) {
+                    discount = 0.20; 
+                }
+            }   
+            double total = price * qty * (1 - discount);
             totalField.setText(String.format("%.2f", total));
-        } catch (NumberFormatException | SQLException e) {
-            totalField.setText("0.00"); 
+    } catch (Exception e) {
+        totalField.setText("");
+    }
+}
+
+    private void generatePurchaseNo() {
+        try {
+            int next = new PurchaseController().getNextPurchaseNo();
+            pNoField.setText(String.valueOf(next));
+        } catch (SQLException e){
+            pNoField.setText("1");
         }
     }
 }
