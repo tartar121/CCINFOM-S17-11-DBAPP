@@ -67,6 +67,26 @@ public class PurchaseController
         ps.executeUpdate();
         con.close();
     }
+    public void updatePurchaseDetails(PurchaseDetails pd) throws SQLException 
+    {
+        Connection con = Database.connectdb();
+    
+        // SQL updates all fields except ID in the row with purchase_no
+        String sql = "UPDATE purchase_details SET medicine_id=?, quantity_ordered=?, discount=?, total=? WHERE purchase_no=?";
+        PreparedStatement ps = con.prepareStatement(sql);
+    
+        ps.setInt(1, pd.getMedicineId());
+        ps.setInt(2, pd.getQuantityOrder());
+        if (pd.getDiscount() == null) {
+            ps.setNull(3, java.sql.Types.DOUBLE);
+        } else {
+            ps.setDouble(3, pd.getDiscount());
+        }
+        ps.setDouble(4, pd.getTotal());
+        ps.setDouble(5, pd.getPurchaseNo());
+        ps.executeUpdate();
+        con.close();
+    }
 
     public Purchase getPurchase(int pNo) throws SQLException {
         String sql = "SELECT * FROM purchase WHERE purchase_no=?";
