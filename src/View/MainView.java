@@ -25,6 +25,9 @@ public class MainView extends JFrame {
     // Testing ReturnPanel
     private CreateReturnPanel createReturnPanel;
 
+    // reports
+    private ProcurementReportPanel proReportPanel;
+
     public MainView() {
         setTitle("Pharmacy Management System");
         setSize(900, 600);
@@ -59,7 +62,7 @@ public class MainView extends JFrame {
         cusButton.addActionListener(e -> cardLayout.show(mainPanel, "customerPanel"));
         homePanel.add(cusButton, gbc);
 
-        // Row 1: Transaction Records (Admin View)
+        // Row 1: Transaction Records
         gbc.gridy = 1; // Y position 1 (second row)
         gbc.gridx = 0; // X position 0
         JButton purButton = new JButton("Purchase Transactions");
@@ -76,12 +79,18 @@ public class MainView extends JFrame {
         retButton.addActionListener(e -> cardLayout.show(mainPanel, "returnPanel"));
         homePanel.add(retButton, gbc);
 
-        // Row 2: Actual Transaction Panels (User View)
+        // Row 2: Actual Transaction Panels (Test)
         gbc.gridy = 2; // Y position 2 (third row)
         gbc.gridx = 2; // X position 2
         JButton createRetButton = new JButton("Create New Return"); // <-- 3. ADD THE NEW BUTTON
         createRetButton.addActionListener(e -> cardLayout.show(mainPanel, "createReturnPanel"));
         homePanel.add(createRetButton, gbc);
+
+        gbc.gridy= 2;
+        gbc.gridx= 1;
+        JButton proRepButton= new JButton("Generate Procurement Report");
+        proRepButton.addActionListener(e-> cardLayout.show(mainPanel, "proReportPanel"));
+        homePanel.add(proRepButton, gbc);
 
         // All Panels
         medicinePanel = new MedicinePanel(this);
@@ -90,6 +99,7 @@ public class MainView extends JFrame {
         purchasePanel = new PurchasePanel(this);
         deliveryPanel = new DeliveryPanel(this);
         returnPanel = new ReturnPanel(this);
+        proReportPanel= new ProcurementReportPanel(this);
 
         // panel for testing CreateReturnPanel
         createReturnPanel = new CreateReturnPanel(this);
@@ -102,9 +112,11 @@ public class MainView extends JFrame {
         mainPanel.add(purchasePanel, "purchasePanel");
         mainPanel.add(deliveryPanel, "deliveryPanel");
         mainPanel.add(returnPanel, "returnPanel");
+        
 
         // add CreateReturnPanel to main panel
         mainPanel.add(createReturnPanel, "createReturnPanel");
+        mainPanel.add(proReportPanel, "proReportPanel");
 
         add(mainPanel);
         cardLayout.show(mainPanel, "homePanel"); // show home first
