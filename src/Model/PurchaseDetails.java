@@ -18,6 +18,7 @@ public class PurchaseDetails {
     public int getPurchaseNo() { return purchase_no; }
     public int getMedicineId() { return medicine_id; }
     public int getQuantityOrder() { return quantity_order; }
-    public double getDiscount()  { return discount;  }
+    public Double getDiscount()  { return discount;  }
     public double getTotal() {   return total;   };
 }
+
