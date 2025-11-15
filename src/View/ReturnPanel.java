@@ -29,7 +29,7 @@ public class ReturnPanel extends JPanel{
 
         // ===== Top Form Panel =====
         JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
-        formPanel.setBorder(BorderFactory.createTitledBorder("Return Details"));
+        formPanel.setBorder(BorderFactory.createTitledBorder("Return:"));
 
         rNoField = new JTextField();
         sIdField = new JTextField();
@@ -91,6 +91,7 @@ public class ReturnPanel extends JPanel{
             Return r = new Return(rNo, sId, reason, reqDate, shipDate, status);
             retcontroller.addReturn(r);
             JOptionPane.showMessageDialog(this, "Return added successfully!");
+            clearFields();
             loadReturns();
         } catch (NumberFormatException nfe) {
             JOptionPane.showMessageDialog(this, "Invalid number format: " + nfe.getMessage());
@@ -113,6 +114,7 @@ public class ReturnPanel extends JPanel{
             Return r = new Return(rNo, sId, reason, reqDate, shipDate, status);
             retcontroller.updateReturn(r);
             JOptionPane.showMessageDialog(this, "Return updated successfully!");
+            clearFields();
             loadReturns();
         } catch (NumberFormatException nfe) {
             JOptionPane.showMessageDialog(this, "Invalid number format: " + nfe.getMessage());
@@ -130,8 +132,8 @@ public class ReturnPanel extends JPanel{
             if (r != null) {
                 sIdField.setText(String.valueOf(r.getSupplierId()));
                 reasonField.setText(r.getReason());
-                reqDateField.setText(r.getRequestDate().format(dateFormatter));
-                shipDateField.setText(r.getShippedDate().format(dateFormatter));
+                reqDateField.setText(r.getRequestDate() != null ? r.getRequestDate().format(dateFormatter) : "N/A");
+                shipDateField.setText(r.getShippedDate() != null ? r.getShippedDate().format(dateFormatter) : "N/A");
                 statusField.setText(r.getReturnStatus());
             } else {
                 JOptionPane.showMessageDialog(this, "Return not found.");
@@ -152,8 +154,8 @@ public class ReturnPanel extends JPanel{
                     r.getReturnNo(),
                     r.getSupplierId(),
                     r.getReason(),
-                    r.getRequestDate().format(dateFormatter),
-                    r.getShippedDate().format(dateFormatter),
+                    r.getRequestDate() != null ? r.getRequestDate().format(dateFormatter) : "N/A",
+                    r.getShippedDate() != null ? r.getShippedDate().format(dateFormatter) : "N/A",
                     r.getReturnStatus()
                 };
                 tableModel.addRow(row);
