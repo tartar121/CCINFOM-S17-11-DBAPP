@@ -21,6 +21,22 @@ public class DeliveryController {
         con.close();
         return active;
     }
+    public double getPrice(int medID) throws SQLException
+    {
+        Connection con = Database.connectdb();
+        String sql = "SELECT price_bought FROM medicine WHERE medicine_id = ?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, medID);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            double price = rs.getDouble("price_bought");
+            con.close();
+            return price;
+        }
+        con.close();
+        return -1;
+    }
     public void addDelivery(Delivers d) throws SQLException
     {
         if (!getActive(d.getsid())) {

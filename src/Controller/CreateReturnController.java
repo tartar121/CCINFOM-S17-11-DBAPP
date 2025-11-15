@@ -1,7 +1,6 @@
 package Controller;
 
 import DB.Database;
-import Model.Return;
 import Model.ReturnableItem;
 
 import java.sql.*;
@@ -66,8 +65,7 @@ public class CreateReturnController {
                 rs.getDate("expiration_date").toLocalDate(),
                 rs.getInt("delivery_no"),
                 shipDate,
-                rs.getDouble("price_bought"),
-                rs.getInt("return_no")
+                rs.getDouble("price_bought")
             ));
         } while (rs.next());
         
@@ -143,34 +141,5 @@ public class CreateReturnController {
             con.setAutoCommit(true);
             con.close();
         }
-    }
-    public List<ReturnableItem> getAllReturns() throws SQLException {
-        List<ReturnableItem> returns = new ArrayList<>();
-        Connection con = Database.connectdb();
-
-        String sql = "SELECT rd.return_no, rd.medicine_id, m.medicine_name, " +
-                 "rd.delivery_no, rd.price_returned, rd.quantity_returned " +
-                 "FROM return_details rd " +
-                 "JOIN `return` r ON rd.return_no = r.return_no " +
-                 "JOIN medicine m ON rd.medicine_id = m.medicine_id " +
-                 "ORDER BY r.request_date DESC";
-
-        PreparedStatement ps = con.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
-
-        while (rs.next()) {
-            returns.add(new ReturnableItem(
-                rs.getInt("medicine_id"),
-                rs.getString("medicine_name"),
-                rs.getInt("quantity_returned"),
-                null,       // expirationDate not needed here
-                rs.getInt("delivery_no"),
-                null,       // shippedDate not needed here
-                rs.getDouble("price_returned"),
-                rs.getInt("return_no")
-            ));
-        }
-        con.close();
-        return returns;
     }
 }
