@@ -27,6 +27,7 @@ public class MainView extends JFrame {
 
     // reports
     private ProcurementReportPanel proReportPanel;
+    private CustomerPurchaseReportPanel cpReportPanel;
 
     public MainView() {
         setTitle("Pharmacy Management System");
@@ -92,6 +93,11 @@ public class MainView extends JFrame {
         proRepButton.addActionListener(e-> cardLayout.show(mainPanel, "proReportPanel"));
         homePanel.add(proRepButton, gbc);
 
+        gbc.gridy= 2;
+        gbc.gridx= 0;
+        JButton cpRepButton= new JButton("Generate Customer Purchase Report");
+        cpRepButton.addActionListener(e-> cardLayout.show(mainPanel, "cpReportPanel"));
+        homePanel.add(cpRepButton, gbc);
         // All Panels
         medicinePanel = new MedicinePanel(this);
         supplierPanel = new SupplierPanel(this);
@@ -100,6 +106,7 @@ public class MainView extends JFrame {
         deliveryPanel = new DeliveryPanel(this);
         returnPanel = new ReturnPanel(this);
         proReportPanel= new ProcurementReportPanel(this);
+        cpReportPanel = new CustomerPurchaseReportPanel(this);
 
         // panel for testing CreateReturnPanel
         createReturnPanel = new CreateReturnPanel(this);
@@ -117,6 +124,7 @@ public class MainView extends JFrame {
         // add CreateReturnPanel to main panel
         mainPanel.add(createReturnPanel, "createReturnPanel");
         mainPanel.add(proReportPanel, "proReportPanel");
+        mainPanel.add(cpReportPanel, "cpReportPanel");
 
         add(mainPanel);
         cardLayout.show(mainPanel, "homePanel"); // show home first
