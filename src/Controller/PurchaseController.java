@@ -11,7 +11,7 @@ public class PurchaseController
     public Purchase getPurchaseByNo(int pNo) throws SQLException 
     {
         Connection con = Database.connectdb();
-        String sql = "SELECT * FROM purchase WHERE purchase_id=?";
+        String sql = "SELECT * FROM purchase WHERE purchase_no=?";
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setInt(1, pNo);
         ResultSet rs = ps.executeQuery();
@@ -44,7 +44,8 @@ public class PurchaseController
         ps.setInt(1, pd.getPurchaseNo());
         ps.setInt(2, pd.getMedicineId());
         ps.setInt(3, pd.getQuantityOrder());
-        ps.setDouble(4, pd.getDiscount());
+        double discount = (pd.getDiscount() == null) ? 0.0 : pd.getDiscount();
+        ps.setDouble(4, discount);  
         ps.setDouble(5, pd.getTotal());
         ps.executeUpdate();
 
@@ -56,7 +57,7 @@ public class PurchaseController
     {
         Connection con = Database.connectdb();
     
-        // SQL updates all fields except ID in the row with purchase_id
+        // SQL updates all fields except ID in the row with purchase_no
         String sql = "UPDATE purchase SET purchase_date=?, customer_id=? WHERE purchase_no=?";
         PreparedStatement ps = con.prepareStatement(sql);
     
@@ -132,5 +133,28 @@ public class PurchaseController
         }   
         con.close();
         return list;
+    }
+    public int getNextPurchaseNo() throws SQLException {
+        Connection con = Database.connectdb();
+        String sql = "SELECT COALESCE(MAX(purchase_no), 0) AS max_no FROM purchase";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        rs.next();
+        int next = rs.getInt("max_no") + 1;
+        con.close();
+        return next;
+    }
+    public boolean hasDiscount(int customerId) throws SQLException {
+        Connection con = Database.connectdb();
+        String sql = "SELECT senior_pwd_id FROM customer WHERE customer_id=?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, customerId);
+        ResultSet rs = ps.executeQuery();
+        boolean result = false;
+        if (rs.next()) {
+            result = rs.getInt("senior_pwd_id") > 0;
+        }
+        con.close();
+        return result;
     }
 }
