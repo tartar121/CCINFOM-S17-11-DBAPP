@@ -1,6 +1,7 @@
 package Controller;
 
 import Model.Purchase;
+import Model.PurchaseDetails;
 import DB.Database;
 
 import java.sql.*;
@@ -26,16 +27,29 @@ public class PurchaseController
         con.close();
         return null;
     }
-    public void addPurchase(Purchase p) throws SQLException 
+    public void addPurchase(Purchase p, PurchaseDetails pd) throws SQLException 
     {
         Connection con=Database.connectdb();
-        String sql="INSERT INTO purchase (purchase_no, purchase_date, customer_id)"
+        String sql1="INSERT INTO purchase (purchase_no, purchase_date, customer_id)"
         + "VALUES (?, ?, ?)";
-        PreparedStatement pstmt=con.prepareStatement(sql);
+        PreparedStatement pstmt=con.prepareStatement(sql1);
         pstmt.setInt(1, p.getPurchaseNo());
         pstmt.setDate(2, java.sql.Date.valueOf(p.getPurchaseDate()));
         pstmt.setInt(3, p.getCustomerId());
         pstmt.executeUpdate();
+
+        String sql2="INSERT INTO purchase_details (purchase_no, medicine_id, quantity_ordered, discount, total)"
+        + "VALUES (?, ?, ?, ?, ?)";
+        PreparedStatement ps=con.prepareStatement(sql2);
+        ps.setInt(1, pd.getPurchaseNo());
+        ps.setInt(2, pd.getMedicineId());
+        ps.setInt(3, pd.getQuantityOrder());
+        ps.setDouble(4, pd.getDiscount());
+        ps.setDouble(5, pd.getTotal());
+        ps.executeUpdate();
+
+        MedicineController mc= new MedicineController();
+        mc.reduceStock(pd.getMedicineId(), pd.getQuantityOrder());
         con.close();
     }
     public void updatePurchase(Purchase p) throws SQLException 
@@ -43,7 +57,7 @@ public class PurchaseController
         Connection con = Database.connectdb();
     
         // SQL updates all fields except ID in the row with purchase_id
-        String sql = "UPDATE purchase SET puchase_date=?, customer_id=? WHERE purchase_no=?";
+        String sql = "UPDATE purchase SET purchase_date=?, customer_id=? WHERE purchase_no=?";
         PreparedStatement ps = con.prepareStatement(sql);
     
         ps.setDate(1, java.sql.Date.valueOf(p.getPurchaseDate()));
@@ -83,6 +97,39 @@ public class PurchaseController
             results.getInt("customer_id")
             ));
         }
+        con.close();
+        return list;
+    }
+    public void insertPurchaseDetail(PurchaseDetails pd) throws SQLException
+    {
+        Connection con=Database.connectdb();
+        String sql="INSERT INTO purchase_details (purchase_no, medicine_id, quantity_ordered, discount, total)";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, pd.getPurchaseNo());
+        ps.setInt(2, pd.getMedicineId());
+        ps.setInt(3, pd.getQuantityOrder());
+        ps.setDouble(4, pd.getDiscount());
+        ps.setDouble(5, pd.getTotal());
+        ps.executeUpdate();
+        con.close();
+    }
+    public List<PurchaseDetails> getPurchaseDetailsByPurchaseNo(int pNo) throws SQLException 
+    {
+        Connection con = Database.connectdb();
+        String sql = "SELECT * FROM purchase_details WHERE purchase_no=?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, pNo);
+        ResultSet rs = ps.executeQuery();
+        List<PurchaseDetails> list = new ArrayList<>();
+        while (rs.next()) {
+            list.add(new PurchaseDetails(
+                rs.getInt("purchase_no"),
+                rs.getInt("medicine_id"),
+                rs.getInt("quantity_ordered"),
+                rs.getDouble("discount"),
+                rs.getDouble("total")
+            ));
+        }   
         con.close();
         return list;
     }
