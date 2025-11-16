@@ -108,15 +108,13 @@ public class MedicineController
         con.close();
         return list;
     }
-    public void reduceStock(int medicineId, int qty) throws SQLException
+    public void reduceStock(int medicineId, int qty, Connection con) throws SQLException
     {
-        Connection con=Database.connectdb();
         String sql="Update medicine SET quantity_in_stock = quantity_in_stock - ? WHERE medicine_id=?";
         PreparedStatement ps=con.prepareStatement(sql);
         ps.setInt(1, qty);
         ps.setInt(2, medicineId);
         ps.executeUpdate();
-        con.close();
     }
     public double getSalePrice(int medicineId) throws SQLException {
         Connection con = Database.connectdb();
@@ -130,5 +128,18 @@ public class MedicineController
         }
         con.close();
         return price;
+    }
+    public int getStock(int medicineId) throws SQLException {
+        Connection con = Database.connectdb();
+        String sql = "SELECT quantity_in_stock FROM medicine WHERE medicine_id=?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, medicineId);
+        ResultSet rs = ps.executeQuery();
+        int qty = 0;
+        if (rs.next()) {
+            qty = rs.getInt("quantity_in_stock");
+        }
+        con.close();
+        return qty;
     }
 }
