@@ -27,4 +27,7 @@ public class Medicine {
     public int getQuantity() { return quantity_in_stock; }
     public LocalDate getExpirationDate() { return expiration_date; }
     public boolean isDiscontinued() { return discontinued; }
+    public void setQuantity(int quantity_in_stock) {
+        this.quantity_in_stock=quantity_in_stock;
+    }
 }
