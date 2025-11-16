@@ -2,6 +2,7 @@ package Controller;
 
 import Model.Purchase;
 import Model.PurchaseDetails;
+import View.MedicinePanel;
 import DB.Database;
 
 import java.sql.*;
@@ -27,9 +28,20 @@ public class PurchaseController
         con.close();
         return null;
     }
-    public void addPurchase(Purchase p, PurchaseDetails pd) throws SQLException 
+    public void addPurchase(Purchase p, PurchaseDetails pd, MedicinePanel medPanel) throws SQLException 
     {
         Connection con=Database.connectdb();
+        con.setAutoCommit(false);
+
+        try {
+            MedicineController mc = new MedicineController();
+            int stock = mc.getStock(pd.getMedicineId());
+            if (pd.getQuantityOrder() > stock) {
+                throw new IllegalArgumentException(
+                    "Ordered quantity (" + pd.getQuantityOrder() + ") exceeds stock (" + stock + ")."
+                );
+            }
+
         String sql1="INSERT INTO purchase (purchase_no, purchase_date, customer_id)"
         + "VALUES (?, ?, ?)";
         PreparedStatement pstmt=con.prepareStatement(sql1);
@@ -49,10 +61,20 @@ public class PurchaseController
         ps.setDouble(5, pd.getTotal());
         ps.executeUpdate();
 
-        MedicineController mc= new MedicineController();
-        mc.reduceStock(pd.getMedicineId(), pd.getQuantityOrder());
-        con.close();
+        mc.reduceStock(pd.getMedicineId(), pd.getQuantityOrder(), con);
+        con.commit();
+        if (medPanel != null) {
+            medPanel.loadMedicines();
+        }
+    } catch (Exception e) {
+            con.rollback(); 
+            throw e;        
+        } finally {
+            con.setAutoCommit(true);
+            con.close();
+        }
     }
+
     public void updatePurchase(Purchase p) throws SQLException 
     {
         Connection con = Database.connectdb();
