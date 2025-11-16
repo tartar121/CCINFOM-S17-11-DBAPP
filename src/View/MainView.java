@@ -28,7 +28,6 @@ public class MainView extends JFrame {
     // reports
     private ProcurementReportPanel proReportPanel;
     private CustomerPurchaseReportPanel cpReportPanel;
-    private MedicineReturnReportPanel medReportPanel;
 
     public MainView() {
         setTitle("Pharmacy Management System");
@@ -99,22 +98,15 @@ public class MainView extends JFrame {
         JButton cpRepButton= new JButton("Generate Customer Purchase Report");
         cpRepButton.addActionListener(e-> cardLayout.show(mainPanel, "cpReportPanel"));
         homePanel.add(cpRepButton, gbc);
-
-        gbc.gridy= 3;
-        gbc.gridx= 0;
-        JButton medRepButton= new JButton("Generate Medicine Return Report");
-        medRepButton.addActionListener(e-> cardLayout.show(mainPanel, "medReportPanel"));
-        homePanel.add(medRepButton, gbc);
         // All Panels
         medicinePanel = new MedicinePanel(this);
         supplierPanel = new SupplierPanel(this);
         customerPanel = new CustomerPanel(this);
-        purchasePanel = new PurchasePanel(this);
+        purchasePanel = new PurchasePanel(this, medicinePanel);
         deliveryPanel = new DeliveryPanel(this);
         returnPanel = new ReturnPanel(this);
         proReportPanel= new ProcurementReportPanel(this);
         cpReportPanel = new CustomerPurchaseReportPanel(this);
-        medReportPanel= new MedicineReturnReportPanel(this);
 
         // panel for testing CreateReturnPanel
         createReturnPanel = new CreateReturnPanel(this);
@@ -133,7 +125,6 @@ public class MainView extends JFrame {
         mainPanel.add(createReturnPanel, "createReturnPanel");
         mainPanel.add(proReportPanel, "proReportPanel");
         mainPanel.add(cpReportPanel, "cpReportPanel");
-        mainPanel.add(medReportPanel, "medReportPanel");
 
         add(mainPanel);
         cardLayout.show(mainPanel, "homePanel"); // show home first
