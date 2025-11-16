@@ -167,7 +167,7 @@ public class MedicinePanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
         }
     }
-    private void loadMedicines() {
+    public void loadMedicines() {
         tableModel.setRowCount(0);
         try {
             List<Medicine> meds = medcontroller.getAllMedicines();
