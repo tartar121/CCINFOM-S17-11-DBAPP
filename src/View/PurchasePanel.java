@@ -80,7 +80,6 @@ public class PurchasePanel extends JPanel {
         }; 
         qtyField.getDocument().addDocumentListener(docListener);
         mIdField.getDocument().addDocumentListener(docListener);
-        discountField.getDocument().addDocumentListener(docListener);
         cIdField.getDocument().addDocumentListener(docListener);
 
         // ===== Button Panel =====
@@ -307,8 +306,15 @@ public class PurchasePanel extends JPanel {
             }   
             double total = price * qty * (1 - discount);
             totalField.setText(String.format("%.2f", total));
+            if (discount > 0) {
+                double dis = price * qty * discount;
+                discountField.setText(String.format("%.2f", dis));
+            } else {
+                discountField.setText("NULL");
+            }
     } catch (Exception e) {
         totalField.setText("");
+        discountField.setText("NULL");
     }
 }
 
