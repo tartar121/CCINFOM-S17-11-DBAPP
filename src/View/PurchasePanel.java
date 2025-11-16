@@ -7,6 +7,8 @@ import Model.Medicine;
 import Controller.CustomerController;
 import Controller.MedicineController;
 import Controller.PurchaseController;
+import View.MedicinePanel;
+
 
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
@@ -26,13 +28,15 @@ public class PurchasePanel extends JPanel {
     private PurchaseController purcontroller;
     private CustomerController cuscontroller;
     private MedicineController medcontroller;
+    private MedicinePanel medPanel;
     private JTable purtable;
     private DefaultTableModel tableModel;
     private JTextField pNoField, purDateField, cIdField, mIdField, qtyField, discountField, totalField;
     private MainView mainView;
 
-    public PurchasePanel(MainView mainView) {
+    public PurchasePanel(MainView mainView, MedicinePanel medPanel) {
         this.mainView = mainView;
+        this.medPanel = medPanel;
         purcontroller = new PurchaseController();
         cuscontroller = new CustomerController();
         medcontroller = new MedicineController();
@@ -77,6 +81,8 @@ public class PurchasePanel extends JPanel {
         qtyField.getDocument().addDocumentListener(docListener);
         mIdField.getDocument().addDocumentListener(docListener);
         discountField.getDocument().addDocumentListener(docListener);
+        cIdField.getDocument().addDocumentListener(docListener);
+
         // ===== Button Panel =====
         JPanel buttonPanel = new JPanel();
         JButton addButton = new JButton("Add Purchase");
@@ -118,13 +124,32 @@ public class PurchasePanel extends JPanel {
             int cId = Integer.parseInt(cIdField.getText().trim());
             int mId = Integer.parseInt(mIdField.getText().trim());
             int qty = Integer.parseInt(qtyField.getText().trim());
+            Medicine m = medcontroller.getMedicineById(mId);
+            if (m == null) {
+                JOptionPane.showMessageDialog(this, "Medicine not found.");
+                return;
+            }
+            if (qty > m.getQuantity()) {
+                JOptionPane.showMessageDialog(this, "Stock not enough");
+                return;
+            }
+            if (m.getExpirationDate() != null && m.getExpirationDate().isBefore(purDate)) {
+                JOptionPane.showMessageDialog(this, "Medicine has expired.");
+                return;
+            }
+            /*if (m.isDiscontinued()) {
+                JOptionPane.showMessageDialog(this, "Medicine has been discontinued.");
+                return;
+            }*/
             String disText = discountField.getText().trim();
             Double dis = null;
             if (!disText.isEmpty()) {
                 dis = Double.parseDouble(disText);
             }
             double total = Double.parseDouble(totalField.getText().trim());
-            purcontroller.addPurchase(new Purchase(pNo, purDate, cId), new PurchaseDetails(pNo, mId, qty, dis, total));
+            purcontroller.addPurchase(new Purchase(pNo, purDate, cId), new PurchaseDetails(pNo, mId, qty, dis, total), medPanel);
+            m.setQuantity(m.getQuantity() - qty);
+            medcontroller.updateMedicine(m);
             JOptionPane.showMessageDialog(this, "Purchase added successfully!");
             clearFields();
             generatePurchaseNo();
@@ -171,6 +196,11 @@ public class PurchasePanel extends JPanel {
             } */
             if (med.getExpirationDate() != null && med.getExpirationDate().isBefore(purDate)) {
                 JOptionPane.showMessageDialog(this, "Medicine has expired.");
+                return;
+            }
+            if (qty > med.getQuantity())
+            {
+                JOptionPane.showMessageDialog(this, "Stock not enough.");
                 return;
             }
             Purchase updatedP = new Purchase(pNo, purDate, cId);
@@ -260,9 +290,9 @@ public class PurchasePanel extends JPanel {
             if (qtyText.isEmpty() || mIdText.isEmpty()) return;
 
             int qty = Integer.parseInt(qtyText);
-            int mid = Integer.parseInt(mIdText);
+            int mId = Integer.parseInt(mIdText);
 
-            Medicine m = medcontroller.getMedicineById(mid);
+            Medicine m = medcontroller.getMedicineById(mId);
             if (m == null) return;
 
             double price = m.getPriceForSale();
