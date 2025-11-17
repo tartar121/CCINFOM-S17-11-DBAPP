@@ -29,7 +29,8 @@ public class CreateReturnController {
                      "JOIN supplier s ON d.supplier_id = s.supplier_id " +
                      "WHERE d.supplier_id = ? " +
                      "AND (m.discontinued = true OR m.expiration_date <= CURDATE()) " + // Rule: expired/discontinued
-                     "AND m.quantity_in_stock > 0";
+                     "AND m.quantity_in_stock > 0" +
+                     "AND DATEDIFF(CURDATE(), d.shipped_date) <= 7"; // Rule: within 7 days of shipped_date
         
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setInt(1, supplierId);
