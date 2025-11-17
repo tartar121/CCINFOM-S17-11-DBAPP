@@ -13,7 +13,7 @@ public class CreateReturnController {
     /**
      * Finds all expired or discontinued items from a specific supplier
      * that still have stock. This implements proposal steps 4.3(a), (b), and (c).
-     *
+     * User logic ^^
      */
     public List<ReturnableItem> findReturnableItems(int supplierId) throws SQLException {
         List<ReturnableItem> items = new ArrayList<>();
@@ -21,7 +21,6 @@ public class CreateReturnController {
         
         // This query joins 4 tables to get all the info we need,
         // fulfilling the proposal's requirement to check multiple records.
-        // It correctly uses the medicine table as a batch table.
         String sql = "SELECT s.supplier_status, m.medicine_id, m.medicine_name, m.expiration_date, " +
                      "m.quantity_in_stock, d.delivery_no, d.shipped_date, m.price_bought " +
                      "FROM medicine m " +
@@ -74,19 +73,19 @@ public class CreateReturnController {
     }
 
     /**
-     * Processes the entire return as a single, atomic SQL transaction.
-     * This implements proposal steps 4.3(d) and (e).
-     *
+     * Processes the return as a REQUEST.
+     * This implements the correct "workflow" logic.
+     * It does NOT update the medicine stock.
      */
     public void processReturn(int supplierId, List<ReturnableItem> itemsToReturn) throws SQLException {
         Connection con = Database.connectdb();
         try {
-            // 1. Turn off auto-commit. This makes it a single transaction.
-            con.setAutoCommit(false);
+            // 1. Turn off auto-commit. This is a transaction.
+            con.setAutoCommit(false); 
 
-            // 2. Create the main `return` record
-            String sqlReturn = "INSERT INTO `return` (supplier_id, reason, request_date, return_status) " +
-                               "VALUES (?, ?, CURDATE(), 'Returned')";
+            // 2. Create the main `return` record with status 'Requested'
+            String sqlReturn = "INSERT INTO `return` (supplier_id, reason, request_date, shipped_date, return_status) " +
+                               "VALUES (?, ?, CURDATE(), NULL, 'Requested')"; // <-- 1. FIX: Status is 'Requested'
             PreparedStatement psReturn = con.prepareStatement(sqlReturn, Statement.RETURN_GENERATED_KEYS);
             psReturn.setInt(1, supplierId);
             psReturn.setString(2, "Expired/Discontinued");
@@ -101,43 +100,36 @@ public class CreateReturnController {
                 throw new SQLException("Failed to create return record, no ID obtained.");
             }
 
-            // 4. Prepare batch statements for `return_details` and `medicine` updates
+            // 4. Prepare batch statement for `return_details` ONLY
             String sqlDetails = "INSERT INTO return_details (return_no, medicine_id, delivery_no, " +
                                 "price_returned, quantity_returned) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement psDetails = con.prepareStatement(sqlDetails);
 
-            // This fulfills "Updating medicine record"
-            String sqlUpdate = "UPDATE medicine SET quantity_in_stock = 0, discontinued = true " +
-                               "WHERE medicine_id = ?";
-            PreparedStatement psUpdate = con.prepareStatement(sqlUpdate);
+            // 5. --- ALL psUpdate CODE IS DELETED ---
+            // We are no longer updating the medicine stock here.
 
             for (ReturnableItem item : itemsToReturn) {
                 // Add to return_details batch
                 psDetails.setInt(1, returnNo);
                 psDetails.setInt(2, item.getMedicineId());
                 psDetails.setInt(3, item.getDeliveryNo());
-                psDetails.setDouble(4, item.getPriceBought()); // Price returned is the price we bought it for
+                psDetails.setDouble(4, item.getPriceBought()); 
                 psDetails.setInt(5, item.getQuantity());
                 psDetails.addBatch();
-                
-                // Add to medicine update batch (sets stock to 0)
-                psUpdate.setInt(1, item.getMedicineId());
-                psUpdate.addBatch();
             }
             
-            // 5. Execute both batches
+            // 6. Execute ONLY the details batch
             psDetails.executeBatch();
-            psUpdate.executeBatch();
-
-            // 6. If all queries worked, commit the transaction
+            
+            // 7. If all queries worked, commit the transaction
             con.commit();
             
         } catch (SQLException e) {
-            // 7. If any query failed, roll back all changes
-            con.rollback();
-            throw e; // Re-throw the exception to notify the panel
+            // 8. If any query failed, roll back all changes
+            con.rollback(); 
+            throw e; 
         } finally {
-            // 8. Always turn auto-commit back on and close
+            // 9. Always turn auto-commit back on and close
             con.setAutoCommit(true);
             con.close();
         }
