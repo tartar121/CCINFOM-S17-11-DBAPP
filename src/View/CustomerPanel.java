@@ -14,15 +14,14 @@ public class CustomerPanel extends JPanel {
     private JTable custable;
     private DefaultTableModel tableModel;
     private JTextField idField, nameField, contactField, pwdField, statusField;
-    private MainView mainView;
 
-    public CustomerPanel(MainView mainView) {
-        this.mainView = mainView;
+    public CustomerPanel(NewMainView mainView) {
         cuscontroller = new CustomerController();
         setLayout(new BorderLayout());
 
         // ===== Top Form Panel =====
         JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
+        formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createTitledBorder("Add/View/Update Customer (cannot delete, if you want to delete change status to inactive)"));
 
         idField = new JTextField();
@@ -46,19 +45,17 @@ public class CustomerPanel extends JPanel {
 
         // ===== Button Panel =====
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
         JButton addButton = new JButton("Add Customer");
         addButton.addActionListener(e -> addCustomer());
         JButton updateButton = new JButton("Update Customer");
         updateButton.addActionListener(e -> updateCustomer());
         JButton viewButton = new JButton("View Customer");
         viewButton.addActionListener(e -> viewCustomer());
-        JButton homeButton = new JButton("Back to Home");
-        homeButton.addActionListener(e -> mainView.goHome());
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
-        buttonPanel.add(homeButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
         // ===== Table =====

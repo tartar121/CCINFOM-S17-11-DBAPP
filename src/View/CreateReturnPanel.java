@@ -12,39 +12,46 @@ import java.util.List;
 
 public class CreateReturnPanel extends JPanel {
     private CreateReturnController controller;
-    private MainView mainView;
 
     private JTextField supplierIdField;
     private JButton findButton;
+    private JLabel supplierStatusLabel;
     private JTable returnableItemsTable;
     private DefaultTableModel tableModel;
     private JButton processReturnButton;
     private List<ReturnableItem> currentItems; // To hold the items from the search
 
-    public CreateReturnPanel(MainView mainView) {
-        this.mainView = mainView;
+    public CreateReturnPanel(NewMainView mainView) {
         this.controller = new CreateReturnController();
         this.currentItems = new ArrayList<>();
         
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // ===== Top Panel (Supplier Input) =====
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Top Panel
+        JPanel topPanel = new JPanel(new BorderLayout(10, 5)); 
+        topPanel.setBackground(Color.WHITE);
         topPanel.setBorder(BorderFactory.createTitledBorder("Return Expired/Discontinued Medicine to Supplier"));
         
-        topPanel.add(new JLabel("Enter Supplier ID:"));
+        JPanel supplierInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        supplierInputPanel.setBackground(Color.WHITE);
+        supplierInputPanel.add(new JLabel("Enter Supplier ID:"));
         supplierIdField = new JTextField(10);
-        topPanel.add(supplierIdField);
+        supplierInputPanel.add(supplierIdField);
         findButton = new JButton("Find Returnable Items");
-        topPanel.add(findButton);
+        supplierInputPanel.add(findButton);
+        
+        supplierStatusLabel = new JLabel("Status: (Please find a supplier)"); 
+        supplierStatusLabel.setForeground(Color.BLUE);
+        
+        topPanel.add(supplierInputPanel, BorderLayout.NORTH);
+        topPanel.add(supplierStatusLabel, BorderLayout.CENTER); 
         
         add(topPanel, BorderLayout.NORTH);
 
-        // ===== Center Panel (Items Table) =====
+        // Center Panel
         String[] columns = {"Batch ID", "Name", "Exp. Date", "Qty", "Delivery No", "Shipped Date"};
         tableModel = new DefaultTableModel(columns, 0) {
-            // Make table cells not editable
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -54,36 +61,39 @@ public class CreateReturnPanel extends JPanel {
         
         add(new JScrollPane(returnableItemsTable), BorderLayout.CENTER);
 
-        // ===== Bottom Panel (Actions) =====
+        // Bottom Panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBackground(Color.WHITE);
         processReturnButton = new JButton("Process Return");
         processReturnButton.setEnabled(false); // Disabled until items are found
         
-        JButton homeButton = new JButton("Back to Home");
-        
         bottomPanel.add(processReturnButton);
-        bottomPanel.add(homeButton);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        // ===== Action Listeners =====
+        // Action Listeners
         findButton.addActionListener(e -> findItems());
         processReturnButton.addActionListener(e -> processReturn());
-        homeButton.addActionListener(e -> {
-            clearForm();
-            mainView.goHome();
-        });
     }
 
     private void findItems() {
+        // This method now does two things:
+        // 1. Find and validate the supplier
+        // 2. Find the returnable items
         try {
             int supplierId = Integer.parseInt(supplierIdField.getText().trim());
+
             // 1. Call the controller to get items
+            // This method *also* checks if the supplier is active
             currentItems = controller.findReturnableItems(supplierId);
             
-            // 2. Clear the table
+            // 2. If successful, update the status label
+            supplierStatusLabel.setText("Supplier (ID: " + supplierId + ") is ACTIVE and has returnable items.");
+            supplierStatusLabel.setForeground(new Color(0, 128, 0)); // Dark Green
+            
+            // 3. Clear the table
             tableModel.setRowCount(0);
             
-            // 3. Populate the table with returnable items
+            // 4. Populate the table with returnable items
             for (ReturnableItem item : currentItems) {
                 tableModel.addRow(new Object[]{
                     item.getMedicineId(),
@@ -95,14 +105,20 @@ public class CreateReturnPanel extends JPanel {
                 });
             }
             
-            // 4. Enable the return button
+            // 5. Enable the return button
             processReturnButton.setEnabled(true);
             
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid numeric Supplier ID.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            supplierStatusLabel.setText("Status: Invalid Supplier ID.");
+            supplierStatusLabel.setForeground(Color.RED);
+            clearForm(); // Clear just the table/button
         } catch (SQLException e) {
+            // This will catch "No returnable items found" OR "Supplier is inactive"
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
-            clearForm();
+            supplierStatusLabel.setText("Status: " + e.getMessage());
+            supplierStatusLabel.setForeground(Color.RED);
+            clearForm(); // Clear just the table/button
         }
     }
 
@@ -130,17 +146,31 @@ public class CreateReturnPanel extends JPanel {
                 // 1. Call the controller to run the SQL transaction
                 controller.processReturn(supplierId, currentItems);
                 
-                // 2. This is your "Generating a receipt"
+                // 2. This is your "Generated Receipt"
                 JOptionPane.showMessageDialog(this, "Return processed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                clearForm();
+                clearFormAndSupplier(); // Clear everything
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Transaction Failed: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
     
+    /**
+     * Clears only the table and buttons, keeps the supplier info.
+     */
     private void clearForm() {
+        tableModel.setRowCount(0);
+        currentItems.clear();
+        processReturnButton.setEnabled(false);
+    }
+    
+    /**
+     * Clears the entire form, including supplier info.
+     */
+    private void clearFormAndSupplier() {
         supplierIdField.setText("");
+        supplierStatusLabel.setText("Status: (Please find a supplier)");
+        supplierStatusLabel.setForeground(Color.BLUE);
         tableModel.setRowCount(0);
         currentItems.clear();
         processReturnButton.setEnabled(false);

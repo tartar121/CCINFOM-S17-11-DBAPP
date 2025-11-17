@@ -14,15 +14,14 @@ public class SupplierPanel extends JPanel {
     private JTable suptable;
     private DefaultTableModel tableModel;
     private JTextField idField, nameField, addressField, contactField, statusField;
-    private MainView mainView;
 
-    public SupplierPanel(MainView mainView) {
-        this.mainView = mainView;
+    public SupplierPanel(NewMainView mainView) {
         supcontroller = new SupplierController();
         setLayout(new BorderLayout());
 
-        // ===== Top Form Panel =====
+        // Top Form Panel
         JPanel formPanel = new JPanel(new GridLayout(5, 2, 5, 5));
+        formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createTitledBorder("Add/View/Update Supplier (cannot delete, if you want to delete change status to inactive)"));
 
         idField = new JTextField();
@@ -44,24 +43,22 @@ public class SupplierPanel extends JPanel {
 
         add(formPanel, BorderLayout.NORTH);
 
-        // ===== Button Panel =====
+        // Button Panel
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
         JButton addButton = new JButton("Add Supplier");
         addButton.addActionListener(e -> addSupplier());
         JButton updateButton = new JButton("Update Supplier");
         updateButton.addActionListener(e -> updateSupplier());
         JButton viewButton = new JButton("View Supplier");
         viewButton.addActionListener(e -> viewSupplier());
-        JButton homeButton = new JButton("Back to Home");
-        homeButton.addActionListener(e -> mainView.goHome());
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
-        buttonPanel.add(homeButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // ===== Table =====
+        // Table
         String[] columns = {"ID", "Name", "Address", "Contact info", "Status"};
         tableModel = new DefaultTableModel(columns, 0);
         suptable = new JTable(tableModel);

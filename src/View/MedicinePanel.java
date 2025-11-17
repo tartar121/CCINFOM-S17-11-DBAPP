@@ -17,15 +17,14 @@ public class MedicinePanel extends JPanel {
     private JTable medtable;
     private DefaultTableModel tableModel;
     private JTextField idField, nameField, priceBoughtField, priceSaleField, qtyField, expDateField, disField;
-    private MainView mainView;
 
-    public MedicinePanel(MainView mainView) {
-        this.mainView = mainView;
+    public MedicinePanel(NewMainView mainView) {
         medcontroller = new MedicineController();
         setLayout(new BorderLayout());
 
-        // ===== Top Form Panel =====
+        // Top Form Panel
         JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
+        formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createTitledBorder("Add/View/Update Medicine (cannot delete, if you want to delete change discontinued to true)"));
 
         idField = new JTextField();
@@ -53,24 +52,22 @@ public class MedicinePanel extends JPanel {
 
         add(formPanel, BorderLayout.NORTH);
 
-        // ===== Button Panel =====
+        // Button Panel
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE);
         JButton addButton = new JButton("Add Medicine");
         addButton.addActionListener(e -> addMedicine());
         JButton updateButton = new JButton("Update Medicine");
         updateButton.addActionListener(e -> updateMedicine());
         JButton viewButton = new JButton("View Medicine");
         viewButton.addActionListener(e -> viewMedicine());
-        JButton homeButton = new JButton("Back to Home");
-        homeButton.addActionListener(e -> mainView.goHome());
 
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
-        buttonPanel.add(homeButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // ===== Table =====
+        // Table
         String[] columns = {"ID", "Name", "Bought", "For Sale", "Qty", "Expiration", "Discontinued"};
         tableModel = new DefaultTableModel(columns, 0);
         medtable = new JTable(tableModel);
