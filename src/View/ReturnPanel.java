@@ -122,23 +122,30 @@ public class ReturnPanel extends JPanel{
         }
     }
 
+    // --- REPLACE THIS METHOD ---
     private void updateReturn() {
         try {
             int rNo = Integer.parseInt(rNoField.getText().trim());
+            
+            // 1. Get the 'current' record to find the OLD status
             Return current = retcontroller.getReturnByNo(rNo);
             if (current == null) {
                 JOptionPane.showMessageDialog(this, "Return No not found.");
                 return;
             }
+            String oldStatus = current.getReturnStatus(); // <-- Get the old status
 
+            // 2. Get the new values from the form
             int sId = sIdField.getText().trim().isEmpty() ? current.getSupplierId() : Integer.parseInt(sIdField.getText().trim());
             String reason = reasonField.getText().trim().isEmpty() ? current.getReason() : reasonField.getText().trim();
-            LocalDate reqDate = reqDateField.getText().trim().isEmpty() ? current.getRequestDate() : parseDate(reqDateField.getText());
-            LocalDate shipDate = shipDateField.getText().trim().isEmpty() ? current.getShippedDate() : parseDate(shipDateField.getText());
+            LocalDate reqDate = parseDate(reqDateField.getText());
+            LocalDate shipDate = parseDate(shipDateField.getText());
             String status = statusField.getText().trim().isEmpty() ? current.getReturnStatus() : statusField.getText().trim();
             
             Return updated = new Return(rNo, sId, reason, reqDate, shipDate, status);
-            retcontroller.updateReturn(updated);
+            
+            // 3. Call the new "smart" update method
+            retcontroller.updateReturn(updated, oldStatus); 
             
             JOptionPane.showMessageDialog(this, "Return updated successfully!");
             clearFields();

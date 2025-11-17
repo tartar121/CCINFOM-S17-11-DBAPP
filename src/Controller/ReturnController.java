@@ -1,7 +1,7 @@
 package Controller;
 
 import Model.Return;
-import Model.ReturnDetailsDisplay; // <-- 1. IMPORT THE NEW HELPER
+import Model.ReturnDetailsDisplay;
 import DB.Database;
 
 import java.sql.*;
@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.util.*;
 
 public class ReturnController {
-    // ... (toSqlDate and toLocalDate helpers stay the same) ...
 
     private java.sql.Date toSqlDate(LocalDate date) {
         return (date == null) ? null : java.sql.Date.valueOf(date);
@@ -19,7 +18,6 @@ public class ReturnController {
     }
 
     public Return getReturnByNo(int rNo) throws SQLException {
-        // ... (This whole method stays the same) ...
         Connection con = Database.connectdb();
         String sql = "SELECT * FROM `return` WHERE return_no=?"; 
         PreparedStatement ps = con.prepareStatement(sql);
@@ -30,8 +28,8 @@ public class ReturnController {
                 rs.getInt("return_no"),
                 rs.getInt("supplier_id"),
                 rs.getString("reason"),
-                rs.getDate("request_date").toLocalDate(),
-                rs.getDate("shipped_date").toLocalDate(),
+                toLocalDate(rs.getDate("request_date")),
+                toLocalDate(rs.getDate("shipped_date")),
                 rs.getString("return_status")
             );
             con.close();
@@ -41,7 +39,7 @@ public class ReturnController {
         return null;
     }
 
-    // ... (addReturn and updateReturn methods stay the same) ...
+    // This is the simple "Admin" Add.
     public void addReturn(Return r) throws SQLException {
         Connection con = Database.connectdb();
         String sql = "INSERT INTO `return` (return_no, supplier_id, reason, request_date, shipped_date, return_status)"
@@ -58,25 +56,58 @@ public class ReturnController {
         con.close();
     }
 
-    public void updateReturn(Return r) throws SQLException {
+    /**
+     * This is the "Admin" 🗄️ update. This is where the status
+     * gets changed from 'Requested' to 'Returned' or 'Cancelled'.
+     * THIS IS THE FIX.
+     */
+    public void updateReturn(Return r, String oldStatus) throws SQLException {
         Connection con = Database.connectdb();
-        String sql = "UPDATE `return` SET supplier_id=?, reason=?, request_date=?, shipped_date=?, return_status=?"
-                   + " WHERE return_no=?";
-        PreparedStatement ps = con.prepareStatement(sql);
+        con.setAutoCommit(false); // Start a transaction
 
-        ps.setInt(1, r.getSupplierId());
-        ps.setString(2, r.getReason());
-        ps.setDate(3, toSqlDate(r.getRequestDate())); // Fixed a typo here (was 4)
-        ps.setDate(4, toSqlDate(r.getShippedDate())); // Fixed a typo here (was 5)
-        ps.setString(5, r.getReturnStatus());
-        ps.setInt(6, r.getReturnNo()); // WHERE clause
-        
-        ps.executeUpdate();
-        con.close();
+        try {
+            // 1. Update the main 'return' record
+            String sql = "UPDATE `return` SET supplier_id=?, reason=?, request_date=?, shipped_date=?, return_status=? WHERE return_no=?";
+            PreparedStatement ps = con.prepareStatement(sql);
+    
+            ps.setInt(1, r.getSupplierId());
+            ps.setString(2, r.getReason());
+            ps.setDate(3, toSqlDate(r.getRequestDate()));
+            ps.setDate(4, toSqlDate(r.getShippedDate()));
+            ps.setString(5, r.getReturnStatus());
+            ps.setInt(6, r.getReturnNo());
+    
+            ps.executeUpdate();
+
+            // 2. --- THIS IS THE CRITICAL LOGIC ---
+            // If the Admin just set the status to 'Returned'
+            // (and it was 'Requested' before), we remove the stock.
+            if ("Returned".equals(r.getReturnStatus()) && "Requested".equals(oldStatus)) {
+                
+                // This query finds all medicine batches in 'return_details'
+                // and sets their stock to 0.
+                String sqlUpdateStock = "UPDATE medicine m " +
+                                  "JOIN return_details rd ON m.medicine_id = rd.medicine_id " +
+                                  "SET m.quantity_in_stock = 0 " +
+                                  "WHERE rd.return_no = ?";
+                
+                PreparedStatement psUpdateStock = con.prepareStatement(sqlUpdateStock);
+                psUpdateStock.setInt(1, r.getReturnNo());
+                psUpdateStock.executeUpdate();
+            }
+            
+            con.commit(); // Commit all changes
+
+        } catch (SQLException e) {
+            con.rollback();
+            throw e;
+        } finally {
+            con.setAutoCommit(true);
+            con.close();
+        }
     }
 
     public List<Return> getAllReturns() throws SQLException {
-        // ... (This whole method stays the same) ...
         List<Return> returns = new ArrayList<>();
         Connection con = Database.connectdb();
         String sql = "SELECT * FROM `return`";
@@ -97,7 +128,6 @@ public class ReturnController {
         return returns;
     }
     
-    // ===== 2. ADD THIS NEW METHOD =====
     /**
      * This gets the "details" for a specific return,
      * fulfilling the "view details" requirement.
@@ -106,7 +136,6 @@ public class ReturnController {
         List<ReturnDetailsDisplay> details = new ArrayList<>();
         Connection con = Database.connectdb();
         
-        // This query JOINS return_details with medicine to get the name
         String sql = "SELECT rd.medicine_id, m.medicine_name, rd.quantity_returned, rd.price_returned " +
                      "FROM return_details rd " +
                      "JOIN medicine m ON rd.medicine_id = m.medicine_id " +
