@@ -299,5 +299,5 @@ VALUES
 (6, 401, 7, 15.00, 50),  -- Return 6 (Requested)
 (7, 402, 8, 12.00, 60),  -- Return 7 (Requested)
 (8, 101, 1, 8.00, 10),   -- Return 8 (Partial Return)
-(9, 103, 2, 20.00, 20),  -- Return 9 (Partial Return)
-(10, 104, 1, 15.00, 10); -- Return 10 (Cancelled)
+(9, 103, 1, 20.00, 20),  -- <-- FIX: Batch 103 came from Delivery 1
+(10, 104, 2, 15.00, 10); -- <-- FIX: Batch 104 came from Delivery 2
