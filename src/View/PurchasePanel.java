@@ -1,17 +1,10 @@
 package View;
 
 import Model.Purchase;
-import Model.PurchaseDetails;
-import Model.Customer;
-import Model.Medicine;
-import Controller.CustomerController;
-import Controller.MedicineController;
+import Model.PurchaseDetailsDisplay;
 import Controller.PurchaseController;
-import View.MedicinePanel;
-
 
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
@@ -19,142 +12,94 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.Document;
-
 
 public class PurchasePanel extends JPanel {
     private PurchaseController purcontroller;
-    private CustomerController cuscontroller;
-    private MedicineController medcontroller;
-    private MedicinePanel medPanel;
     private JTable purtable;
     private DefaultTableModel tableModel;
-    private JTextField pNoField, purDateField, cIdField, mIdField, qtyField, discountField, totalField;
-    private MainView mainView;
+    private JTextField pNoField, purDateField, cIdField;
+    private NewMainView mainView; 
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public PurchasePanel(MainView mainView, MedicinePanel medPanel) {
+    public PurchasePanel(NewMainView mainView) {
         this.mainView = mainView;
-        this.medPanel = medPanel;
         purcontroller = new PurchaseController();
-        cuscontroller = new CustomerController();
-        medcontroller = new MedicineController();
-        setLayout(new BorderLayout());
+        
+        setBackground(Color.WHITE);
+        setLayout(new BorderLayout(10, 10));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // ===== Top Form Panel =====
-        JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
+        // Top Panel
+        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        formPanel.setBackground(Color.WHITE); 
+        formPanel.setBorder(BorderFactory.createTitledBorder("Manage Purchase Records"));
 
         pNoField = new JTextField();
         purDateField = new JTextField();
         cIdField = new JTextField();
-        mIdField = new JTextField();
-        qtyField = new JTextField();
-        discountField = new JTextField();
-        discountField.setEditable(false); 
-        totalField = new JTextField();
-        totalField.setEditable(false); 
 
-        formPanel.add(new JLabel("Purchase No"));
+        formPanel.add(new JLabel("Purchase No (for View/Update)"));
         formPanel.add(pNoField);
         formPanel.add(new JLabel("Purchase Date (YYYY-MM-DD)"));
         formPanel.add(purDateField);
         formPanel.add(new JLabel("Customer ID"));
         formPanel.add(cIdField);
-        formPanel.add(new JLabel("Medicine ID"));
-        formPanel.add(mIdField);
-        formPanel.add(new JLabel("Purchase Quantity"));
-        formPanel.add(qtyField);
-        formPanel.add(new JLabel("Discount"));
-        formPanel.add(discountField);
-        formPanel.add(new JLabel("Total"));
-        formPanel.add(totalField);
 
         add(formPanel, BorderLayout.NORTH);
-
-        generatePurchaseNo();
-        DocumentListener docListener = new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { calculateTotal(); }
-            public void removeUpdate(DocumentEvent e) { calculateTotal(); }
-            public void changedUpdate(DocumentEvent e) { calculateTotal(); }
-        }; 
-        qtyField.getDocument().addDocumentListener(docListener);
-        mIdField.getDocument().addDocumentListener(docListener);
-        cIdField.getDocument().addDocumentListener(docListener);
-
-        // ===== Button Panel =====
+        
+        // Button Panel
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(Color.WHITE); 
         JButton addButton = new JButton("Add Purchase");
         addButton.addActionListener(e -> addPurchase());
         JButton updateButton = new JButton("Update Purchase");
         updateButton.addActionListener(e -> updatePurchase());
         JButton viewButton = new JButton("View Purchase");
         viewButton.addActionListener(e -> viewPurchase());
-        JButton homeButton = new JButton("Back to Home");
-        homeButton.addActionListener(e -> mainView.goHome());
-
+        
+        JButton viewDetailsButton = new JButton("View Details");
+        viewDetailsButton.addActionListener(e -> viewDetails());
+        
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
-        buttonPanel.add(homeButton);
+        buttonPanel.add(viewDetailsButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // ===== Table =====
-        String[] columns = {"Purchase No", "Purchase Date", "Customer ID", "Medicine ID", "Purchase Quantity", "Discount", "Total"};
+        // Table
+        String[] columns = {"Purchase No", "Purchase Date", "Customer ID"};
         tableModel = new DefaultTableModel(columns, 0);
         purtable = new JTable(tableModel);
-        add(new JScrollPane(purtable), BorderLayout.CENTER);
+        
+        JScrollPane scrollPane = new JScrollPane(purtable);
+        scrollPane.getViewport().setBackground(Color.WHITE); 
+        add(scrollPane, BorderLayout.CENTER);
 
         loadPurchases();
+    }
+    
+    private LocalDate parseDate(String text) throws DateTimeParseException {
+        if (text == null || text.trim().isEmpty() || text.trim().equalsIgnoreCase("N/A")) {
+            return null;
+        }
+        return LocalDate.parse(text.trim(), dateFormatter);
     }
 
     private void addPurchase() {
         try {
             int pNo = Integer.parseInt(pNoField.getText().trim()); 
-            String purStr = purDateField.getText().trim();
-            LocalDate purDate;
-            try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                purDate = LocalDate.parse(purStr, formatter);
-            } catch (DateTimeParseException e) {
-                JOptionPane.showMessageDialog(this, "Invalid purchase date format. Use YYYY-MM-DD.");
-                return;
-            }
+            LocalDate purDate = parseDate(purDateField.getText());
             int cId = Integer.parseInt(cIdField.getText().trim());
-            int mId = Integer.parseInt(mIdField.getText().trim());
-            int qty = Integer.parseInt(qtyField.getText().trim());
-            Medicine m = medcontroller.getMedicineById(mId);
-            if (m == null) {
-                JOptionPane.showMessageDialog(this, "Medicine not found.");
-                return;
-            }
-            if (qty > m.getQuantity()) {
-                JOptionPane.showMessageDialog(this, "Stock not enough");
-                return;
-            }
-            if (m.getExpirationDate() != null && m.getExpirationDate().isBefore(purDate)) {
-                JOptionPane.showMessageDialog(this, "Medicine has expired.");
-                return;
-            }
-            /*if (m.isDiscontinued()) {
-                JOptionPane.showMessageDialog(this, "Medicine has been discontinued.");
-                return;
-            }*/
-            String disText = discountField.getText().trim();
-            Double dis = null;
-            if (!disText.isEmpty()) {
-                dis = Double.parseDouble(disText);
-            }
-            double total = Double.parseDouble(totalField.getText().trim());
-            purcontroller.addPurchase(new Purchase(pNo, purDate, cId), new PurchaseDetails(pNo, mId, qty, dis, total), medPanel);
-            m.setQuantity(m.getQuantity() - qty);
-            medcontroller.updateMedicine(m);
+            
+            purcontroller.addPurchase(new Purchase(pNo, purDate, cId));
+            
             JOptionPane.showMessageDialog(this, "Purchase added successfully!");
             clearFields();
-            generatePurchaseNo();
             loadPurchases();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter valid numeric values for ID.");
+            JOptionPane.showMessageDialog(this, "Please enter valid numeric values for IDs.");
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Invalid date format. Use YYYY-MM-DD.");
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
         }
@@ -169,103 +114,98 @@ public class PurchasePanel extends JPanel {
                 return;
             }
 
-            LocalDate purDate = purDateField.getText().trim().isEmpty() ? current.getPurchaseDate()
-                    : LocalDate.parse(purDateField.getText().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            int cId = cIdField.getText().trim().isEmpty() ? current.getCustomerId()
-                    : Integer.parseInt(cIdField.getText().trim());
-            PurchaseDetails currentPD = purcontroller.getPurchaseDetailsByPurchaseNo(pNo).get(0);
-            int mId = mIdField.getText().trim().isEmpty() ? currentPD.getMedicineId()
-                : Integer.parseInt(mIdField.getText().trim());
-            int qty = qtyField.getText().trim().isEmpty() ? currentPD.getQuantityOrder()
-                : Integer.parseInt(qtyField.getText().trim());
-            Double discount = discountField.getText().trim().isEmpty() ? currentPD.getDiscount()
-                : Double.parseDouble(discountField.getText().trim());
-            double total = totalField.getText().trim().isEmpty() ? currentPD.getTotal()
-                : Double.parseDouble(totalField.getText().trim());
-
-
-            Medicine med = medcontroller.getMedicineById(mId);
-            if (med == null) {
-                JOptionPane.showMessageDialog(this, "Medicine not found.");
-                return;
-            }
-            /*if (med.isDiscontinued()) {
-                JOptionPane.showMessageDialog(this, "Medicine has been discontinued.");
-                return;
-            } */
-            if (med.getExpirationDate() != null && med.getExpirationDate().isBefore(purDate)) {
-                JOptionPane.showMessageDialog(this, "Medicine has expired.");
-                return;
-            }
-            if (qty > med.getQuantity())
-            {
-                JOptionPane.showMessageDialog(this, "Stock not enough.");
-                return;
-            }
+            LocalDate purDate = purDateField.getText().trim().isEmpty() ? current.getPurchaseDate() : parseDate(purDateField.getText());
+            int cId = cIdField.getText().trim().isEmpty() ? current.getCustomerId() : Integer.parseInt(cIdField.getText().trim());
+            
             Purchase updatedP = new Purchase(pNo, purDate, cId);
-            PurchaseDetails updatedPD = new PurchaseDetails(pNo, mId, qty, discount, total);
             purcontroller.updatePurchase(updatedP);
-            purcontroller.updatePurchaseDetails(updatedPD);
+            
             JOptionPane.showMessageDialog(this, "Purchase updated successfully!");
             clearFields();
             loadPurchases();
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter valid numeric values.");
+            JOptionPane.showMessageDialog(this, "Please enter a valid numeric ID.");
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Invalid date format. Use YYYY-MM-DD.");
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
         }
     }
 
-
     private void viewPurchase() {
         try {
             int pNo = Integer.parseInt(pNoField.getText().trim());
-    
-            // Fetch purchase from database
             Purchase p = purcontroller.getPurchaseByNo(pNo);
             if (p == null) {
                 JOptionPane.showMessageDialog(this, "Purchase No not found.");
                 return;
             }
-            Medicine m = medcontroller.getMedicine(pNo);
-            List<PurchaseDetails> details = purcontroller.getPurchaseDetailsByPurchaseNo(pNo);
-
-            // Display in fields
-            purDateField.setText(p.getPurchaseDate().toString());
+    
+            purDateField.setText(p.getPurchaseDate() != null ? p.getPurchaseDate().format(dateFormatter) : "N/A");
             cIdField.setText(String.valueOf(p.getCustomerId()));
-            mIdField.setText(String.valueOf(m.getId()));
-            for (PurchaseDetails pd : details) {
-                qtyField.setText(String.valueOf(pd.getQuantityOrder()));
-                discountField.setText(String.valueOf(pd.getDiscount()));
-                totalField.setText(String.valueOf(pd.getTotal()));
-            }
-
-            
+    
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid numeric ID.");
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage());
         }
     }
+    
+    private void viewDetails() {
+        int selectedRow = purtable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a purchase from the table to view its details.", "No Purchase Selected", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int purchaseNo = (int) tableModel.getValueAt(selectedRow, 0);
+
+        try {
+            List<PurchaseDetailsDisplay> details = purcontroller.getDetailsForPurchase(purchaseNo);
+            
+            if (details.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No details found for Purchase No: " + purchaseNo, "No Details", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            JDialog detailsDialog = new JDialog(mainView, "Details for Purchase No: " + purchaseNo, true);
+            detailsDialog.setSize(600, 300);
+            detailsDialog.setLocationRelativeTo(this);
+            
+            String[] columns = {"Batch ID", "Medicine Name", "Qty", "Discount", "Total"};
+            DefaultTableModel detailsModel = new DefaultTableModel(columns, 0);
+            JTable detailsTable = new JTable(detailsModel);
+            
+            for (PurchaseDetailsDisplay item : details) {
+                detailsModel.addRow(new Object[]{
+                    item.getMedicineId(),
+                    item.getMedicineName(),
+                    item.getQuantity(),
+                    String.format("%.2f", item.getDiscount()),
+                    String.format("%.2f", item.getTotal())
+                });
+            }
+            
+            JScrollPane scrollPane = new JScrollPane(detailsTable);
+            scrollPane.getViewport().setBackground(Color.WHITE);
+            detailsDialog.add(scrollPane);
+            detailsDialog.setVisible(true); 
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void loadPurchases() {
         tableModel.setRowCount(0);
         try {
-            List<Purchase> pur = purcontroller.getAllPurchases();
-            for (Purchase p : pur) {
-                List<PurchaseDetails> details = purcontroller.getPurchaseDetailsByPurchaseNo(p.getPurchaseNo());
-                for (PurchaseDetails pd : details) {
-                    Object discountValue = (pd.getDiscount() == null || pd.getDiscount() == 0) ? "NULL" : pd.getDiscount();
-                    tableModel.addRow(new Object[]{
-                        p.getPurchaseNo(),
-                        p.getPurchaseDate(),
-                        p.getCustomerId(),
-                        pd.getMedicineId(),
-                        pd.getQuantityOrder(),
-                        discountValue,
-                        pd.getTotal()
-                        });
-                    }
-                
+            List<Purchase> purs = purcontroller.getAllPurchases();
+            for (Purchase p : purs) {
+                tableModel.addRow(new Object[]{
+                        p.getPurchaseNo(), 
+                        p.getPurchaseDate() != null ? p.getPurchaseDate().format(dateFormatter) : "N/A", 
+                        p.getCustomerId()
+                });
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error loading purchases: " + e.getMessage());
@@ -273,57 +213,8 @@ public class PurchasePanel extends JPanel {
     }
 
     private void clearFields() {
+        pNoField.setText("");
         purDateField.setText("");
         cIdField.setText("");
-        mIdField.setText(""); 
-        qtyField.setText(""); 
-        discountField.setText(""); 
-        totalField.setText("");
-    }
-    private void calculateTotal() {
-        try {
-            String qtyText = qtyField.getText().trim();
-            String mIdText = mIdField.getText().trim();
-            String cIdText = cIdField.getText().trim();
-
-            if (qtyText.isEmpty() || mIdText.isEmpty()) return;
-
-            int qty = Integer.parseInt(qtyText);
-            int mId = Integer.parseInt(mIdText);
-
-            Medicine m = medcontroller.getMedicineById(mId);
-            if (m == null) return;
-
-            double price = m.getPriceForSale();
-            double discount = 0.0;
-
-            if (!cIdText.isEmpty()) {
-                int cId = Integer.parseInt(cIdText);
-                Customer c = cuscontroller.getCustomerbyId(cId);
-                if (c != null && c.getPwdId() != 0) {
-                    discount = 0.20; 
-                }
-            }   
-            double total = price * qty * (1 - discount);
-            totalField.setText(String.format("%.2f", total));
-            if (discount > 0) {
-                double dis = price * qty * discount;
-                discountField.setText(String.format("%.2f", dis));
-            } else {
-                discountField.setText("NULL");
-            }
-    } catch (Exception e) {
-        totalField.setText("");
-        discountField.setText("NULL");
-    }
-}
-
-    private void generatePurchaseNo() {
-        try {
-            int next = new PurchaseController().getNextPurchaseNo();
-            pNoField.setText(String.valueOf(next));
-        } catch (SQLException e){
-            pNoField.setText("1");
-        }
     }
 }

@@ -2,15 +2,29 @@ package Controller;
 
 import Model.Purchase;
 import Model.PurchaseDetails;
-import View.MedicinePanel;
+import Model.PurchaseDetailsDisplay; // Helper for "View Details"
 import DB.Database;
 
 import java.sql.*;
-import java.util.*;
-public class PurchaseController
-{
-    public Purchase getPurchaseByNo(int pNo) throws SQLException 
-    {
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Admin Controller for Purchases
+ * Simple CRUD on the 'purchase' and 'purchase_details' tables
+ * User transaction logic (checking stock, discounts) is in 'CreatePurchaseController'
+ */
+public class PurchaseController {
+
+    private java.sql.Date toSqlDate(LocalDate date) {
+        return (date == null) ? null : java.sql.Date.valueOf(date);
+    }
+    private LocalDate toLocalDate(java.sql.Date date) {
+        return (date == null) ? null : date.toLocalDate();
+    }
+
+    public Purchase getPurchaseByNo(int pNo) throws SQLException {
         Connection con = Database.connectdb();
         String sql = "SELECT * FROM purchase WHERE purchase_no=?";
         PreparedStatement ps = con.prepareStatement(sql);
@@ -19,7 +33,7 @@ public class PurchaseController
         if (rs.next()) {
             Purchase p = new Purchase(
                 rs.getInt("purchase_no"),
-                rs.getDate("purchase_date").toLocalDate(),
+                toLocalDate(rs.getDate("purchase_date")),
                 rs.getInt("customer_id")
             );
             con.close();
@@ -28,175 +42,76 @@ public class PurchaseController
         con.close();
         return null;
     }
-    public void addPurchase(Purchase p, PurchaseDetails pd, MedicinePanel medPanel) throws SQLException 
-    {
-        Connection con=Database.connectdb();
-        con.setAutoCommit(false);
 
-        try {
-            MedicineController mc = new MedicineController();
-            int stock = mc.getStock(pd.getMedicineId());
-            if (pd.getQuantityOrder() > stock) {
-                throw new IllegalArgumentException(
-                    "Ordered quantity (" + pd.getQuantityOrder() + ") exceeds stock (" + stock + ")."
-                );
-            }
-
-        String sql1="INSERT INTO purchase (purchase_no, purchase_date, customer_id)"
-        + "VALUES (?, ?, ?)";
-        PreparedStatement pstmt=con.prepareStatement(sql1);
+    // Add
+    public void addPurchase(Purchase p) throws SQLException {
+        Connection con = Database.connectdb();
+        String sql = "INSERT INTO purchase (purchase_no, purchase_date, customer_id)"
+                   + "VALUES (?, ?, ?)";
+        PreparedStatement pstmt = con.prepareStatement(sql);
         pstmt.setInt(1, p.getPurchaseNo());
-        pstmt.setDate(2, java.sql.Date.valueOf(p.getPurchaseDate()));
+        pstmt.setDate(2, toSqlDate(p.getPurchaseDate()));
         pstmt.setInt(3, p.getCustomerId());
         pstmt.executeUpdate();
-
-        String sql2="INSERT INTO purchase_details (purchase_no, medicine_id, quantity_ordered, discount, total)"
-        + "VALUES (?, ?, ?, ?, ?)";
-        PreparedStatement ps=con.prepareStatement(sql2);
-        ps.setInt(1, pd.getPurchaseNo());
-        ps.setInt(2, pd.getMedicineId());
-        ps.setInt(3, pd.getQuantityOrder());
-        double discount = (pd.getDiscount() == null) ? 0.0 : pd.getDiscount();
-        ps.setDouble(4, discount);  
-        ps.setDouble(5, pd.getTotal());
-        ps.executeUpdate();
-
-        mc.reduceStock(pd.getMedicineId(), pd.getQuantityOrder(), con);
-        con.commit();
-        if (medPanel != null) {
-            medPanel.loadMedicines();
-        }
-    } catch (Exception e) {
-            con.rollback(); 
-            throw e;        
-        } finally {
-            con.setAutoCommit(true);
-            con.close();
-        }
+        con.close();
     }
 
-    public void updatePurchase(Purchase p) throws SQLException 
-    {
+    // Update
+    public void updatePurchase(Purchase p) throws SQLException {
         Connection con = Database.connectdb();
-    
-        // SQL updates all fields except ID in the row with purchase_no
         String sql = "UPDATE purchase SET purchase_date=?, customer_id=? WHERE purchase_no=?";
         PreparedStatement ps = con.prepareStatement(sql);
-    
-        ps.setDate(1, java.sql.Date.valueOf(p.getPurchaseDate()));
+        ps.setDate(1, toSqlDate(p.getPurchaseDate()));
         ps.setInt(2, p.getCustomerId());
         ps.setInt(3, p.getPurchaseNo());
         ps.executeUpdate();
         con.close();
     }
-    public void updatePurchaseDetails(PurchaseDetails pd) throws SQLException 
-    {
-        Connection con = Database.connectdb();
-    
-        // SQL updates all fields except ID in the row with purchase_no
-        String sql = "UPDATE purchase_details SET medicine_id=?, quantity_ordered=?, discount=?, total=? WHERE purchase_no=?";
-        PreparedStatement ps = con.prepareStatement(sql);
-    
-        ps.setInt(1, pd.getMedicineId());
-        ps.setInt(2, pd.getQuantityOrder());
-        if (pd.getDiscount() == null) {
-            ps.setNull(3, java.sql.Types.DOUBLE);
-        } else {
-            ps.setDouble(3, pd.getDiscount());
-        }
-        ps.setDouble(4, pd.getTotal());
-        ps.setDouble(5, pd.getPurchaseNo());
-        ps.executeUpdate();
-        con.close();
-    }
 
-    public Purchase getPurchase(int pNo) throws SQLException {
-        String sql = "SELECT * FROM purchase WHERE purchase_no=?";
-        try (Connection con = Database.connectdb();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, pNo);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return new Purchase(
-                        rs.getInt("purchase_no"),
-                        rs.getDate("purchase_date").toLocalDate(),
-                        rs.getInt("customer_id")
-                );
-            }
-        }
-        return null;
-    }
-    public List<Purchase> getAllPurchases() throws SQLException
-    {
-        Connection con=Database.connectdb();
-        String sql="SELECT * FROM purchase";
-        Statement stmt=con.createStatement();
-        ResultSet results=stmt.executeQuery(sql); // stores all the result return by the query
-        List<Purchase> list=new ArrayList<>();
+    public List<Purchase> getAllPurchases() throws SQLException {
+        Connection con = Database.connectdb();
+        String sql = "SELECT * FROM purchase";
+        Statement stmt = con.createStatement();
+        ResultSet results = stmt.executeQuery(sql);
+        List<Purchase> list = new ArrayList<>();
         while (results.next()) {
             list.add(new Purchase(
-            results.getInt("purchase_no"),
-            results.getDate("purchase_date").toLocalDate(),
-            results.getInt("customer_id")
+                results.getInt("purchase_no"),
+                toLocalDate(results.getDate("purchase_date")),
+                results.getInt("customer_id")
             ));
         }
         con.close();
         return list;
     }
-    public void insertPurchaseDetail(PurchaseDetails pd) throws SQLException
-    {
-        Connection con=Database.connectdb();
-        String sql="INSERT INTO purchase_details (purchase_no, medicine_id, quantity_ordered, discount, total)";
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1, pd.getPurchaseNo());
-        ps.setInt(2, pd.getMedicineId());
-        ps.setInt(3, pd.getQuantityOrder());
-        ps.setDouble(4, pd.getDiscount());
-        ps.setDouble(5, pd.getTotal());
-        ps.executeUpdate();
-        con.close();
-    }
-    public List<PurchaseDetails> getPurchaseDetailsByPurchaseNo(int pNo) throws SQLException 
-    {
+
+    /**
+     * This gets the "details" for a specific purchase for the Admin panel,
+     * including the medicine name.
+     */
+    public List<PurchaseDetailsDisplay> getDetailsForPurchase(int purchaseNo) throws SQLException {
+        List<PurchaseDetailsDisplay> details = new ArrayList<>();
         Connection con = Database.connectdb();
-        String sql = "SELECT * FROM purchase_details WHERE purchase_no=?";
+        
+        String sql = "SELECT pd.medicine_id, m.medicine_name, pd.quantity_ordered, pd.discount, pd.total " +
+                     "FROM purchase_details pd " +
+                     "JOIN medicine m ON pd.medicine_id = m.medicine_id " +
+                     "WHERE pd.purchase_no = ?";
+        
         PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1, pNo);
+        ps.setInt(1, purchaseNo);
         ResultSet rs = ps.executeQuery();
-        List<PurchaseDetails> list = new ArrayList<>();
+
         while (rs.next()) {
-            list.add(new PurchaseDetails(
-                rs.getInt("purchase_no"),
+            details.add(new PurchaseDetailsDisplay(
                 rs.getInt("medicine_id"),
+                rs.getString("medicine_name"),
                 rs.getInt("quantity_ordered"),
                 rs.getDouble("discount"),
                 rs.getDouble("total")
             ));
-        }   
-        con.close();
-        return list;
-    }
-    public int getNextPurchaseNo() throws SQLException {
-        Connection con = Database.connectdb();
-        String sql = "SELECT COALESCE(MAX(purchase_no), 0) AS max_no FROM purchase";
-        PreparedStatement ps = con.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
-        rs.next();
-        int next = rs.getInt("max_no") + 1;
-        con.close();
-        return next;
-    }
-    public boolean hasDiscount(int customerId) throws SQLException {
-        Connection con = Database.connectdb();
-        String sql = "SELECT senior_pwd_id FROM customer WHERE customer_id=?";
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1, customerId);
-        ResultSet rs = ps.executeQuery();
-        boolean result = false;
-        if (rs.next()) {
-            result = rs.getInt("senior_pwd_id") > 0;
         }
         con.close();
-        return result;
+        return details;
     }
 }
