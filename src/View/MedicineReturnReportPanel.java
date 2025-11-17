@@ -12,60 +12,56 @@ public class MedicineReturnReportPanel extends JPanel{
     private MedicineReturnReportController medController;
     private DefaultTableModel tableModel;
     private JTable reportTable;
-    private JTextField month, year;
-    public MedicineReturnReportPanel (MainView mainView)
+    private JComboBox<Integer> monthComboBox;
+    private JTextField yearT;
+    public MedicineReturnReportPanel (NewMainView mainView)
     {
         medController= new MedicineReturnReportController();
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel buttonPanel= new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton homeButton= new JButton("Back to Home");
-        homeButton.addActionListener(e -> mainView.goHome());
-        buttonPanel.add(homeButton);
-        add(buttonPanel, BorderLayout.NORTH);
+        // Top Panel
+        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createTitledBorder("Generate Medicine Return Report"));
 
-        month= new JTextField(10);
-        year= new JTextField(10);
-
-        JPanel proReport= new JPanel(new GridLayout(3, 2, 5, 5));
-        proReport.add(new JLabel("Input month:"));
-        proReport.add(month);
-        proReport.add(new JLabel("Input year: "));
-        proReport.add(year);
-        JButton generateReport= new JButton("Generate Report");
-        generateReport.addActionListener(e -> getReport());
-        proReport.add(new JLabel());
-        proReport.add(generateReport);
-        add(proReport, BorderLayout.WEST);
+        // Create ComboBox for Month Selection
+        monthComboBox = new JComboBox<>();
+        for (int i = 1; i <= 12; i++) {
+            monthComboBox.addItem(i);
+        }
         
+        yearT = new JTextField(5); // Set a preferred size
 
-        String[] columns = {"Medicine ID", "Medicine Name", "No of Returns", "Quantity Returned", "Price Returned"};
+        formPanel.add(new JLabel("Month:"));
+        formPanel.add(monthComboBox); 
+        formPanel.add(new JLabel("Year:"));
+        formPanel.add(yearT);
+
+        JButton generateButton = new JButton("Generate Report");
+        formPanel.add(generateButton);
+        
+        add(formPanel, BorderLayout.NORTH);        
+
+        String[] columns = {"Medicine ID", "Medicine Name", "No. of Returns", "Quantity Returned", "Price Returned"};
         tableModel = new DefaultTableModel(columns, 0);
 
         reportTable = new JTable(tableModel);
         add(new JScrollPane(reportTable), BorderLayout.CENTER);
+
+        generateButton.addActionListener(e -> getReport());
     }
     private void getReport()
     {
-        tableModel.setRowCount(0);
-        if (month.getText().isEmpty() || year.getText().isEmpty()) 
-        {
-            JOptionPane.showMessageDialog(this, "Please enter both month and year.",
-                    "Input Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        try
-        {
-            int m= Integer.parseInt(month.getText().trim());
-            int y= Integer.parseInt(year.getText().trim());
+        try {
+            int month = (int) monthComboBox.getSelectedItem(); 
+            int year = Integer.parseInt(yearT.getText().trim());
 
-            if (m < 1 || m > 12) {
-                JOptionPane.showMessageDialog(this, "Month must be between 1 and 12.",
-                        "Invalid Month", JOptionPane.ERROR_MESSAGE);
-                return;
+            if (year < 2000 || year > 2100) {
+                throw new NumberFormatException("Please enter a valid year.");
             }
-            List<MedicineReturnReport> report= medController.getMedicineReturnReport(m, y);
+
+            List<MedicineReturnReport> report= medController.getMedicineReturnReport(month, year);
             if (report.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                         "No returns records found for this period.",
@@ -82,13 +78,10 @@ public class MedicineReturnReportPanel extends JPanel{
                     mr.getTotalR()
                 });
             }
-        }
-        catch (NumberFormatException nfe) {
-            JOptionPane.showMessageDialog(this, "Month and Year must be numeric.",
-                    "Input Error", JOptionPane.ERROR_MESSAGE);
-        }
-        catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error loading returns: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid numeric year (e.g., 2025).", "Input Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
