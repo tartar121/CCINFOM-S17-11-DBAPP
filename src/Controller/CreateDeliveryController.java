@@ -1,10 +1,8 @@
 package Controller;
 
 import DB.Database;
-import Model.NewDeliveryItem;     // The "Shopping List" 📝
-import Model.Supplier;            // The Core Record
-import Model.Delivers;            // The "Official Record" 🗄️
-import Model.DeliveryDetails;     // The "Official Record" 🗄️
+import Model.NewDeliveryItem;     
+import Model.Supplier;            
 import Model.Medicine;
 
 import java.sql.*;
@@ -46,7 +44,7 @@ public class CreateDeliveryController {
     }
     public Medicine findMedicineBatch(int medicineId) throws SQLException {
         Connection con = Database.connectdb();
-        // This query checks all business rules for selling
+        // Checks all business rules for selling
         String sql = "SELECT * FROM medicine WHERE medicine_id = ?";
         
         PreparedStatement ps = con.prepareStatement(sql);
@@ -94,14 +92,14 @@ public class CreateDeliveryController {
         try {
             con.setAutoCommit(false); // START TRANSACTION
 
-            // 1. Create the main `delivers` record with status 'Requested'
+            // Create the main `delivers` record with status 'Requested'
             String sqlDeliver = "INSERT INTO delivers (supplier_id, request_date, shipped_date, delivery_status) " +
                                 "VALUES (?, CURDATE(), NULL, NULL)"; // <-- 1. FIX: Status is 'Requested'
             PreparedStatement psDeliver = con.prepareStatement(sqlDeliver, Statement.RETURN_GENERATED_KEYS);
             psDeliver.setInt(1, supplierId);
             psDeliver.executeUpdate();
 
-            // 2. Get the new auto-generated delivery_no
+            // Get the new auto-generated delivery_no
             ResultSet rsKeys = psDeliver.getGeneratedKeys();
             int deliveryNo;
             if (rsKeys.next()) {
@@ -110,7 +108,7 @@ public class CreateDeliveryController {
                 throw new SQLException("Failed to create delivery record, no ID obtained.");
             }
 
-            // 3. Prepare batch statements
+            // Prepare batch statements
             
             // This fulfills "Adding a new medicine record (batch)"
             // We set stock to 0 because it hasn't arrived yet.
@@ -128,7 +126,7 @@ public class CreateDeliveryController {
                 // Add new batch to `medicine` table
                 // Link this batch to the delivery in `delivery_details`
                 psDetails.setInt(1, deliveryNo);
-                psDetails.setInt(2, item.getMedicineId()); // use existing batch ID
+                psDetails.setInt(2, item.getMedicineId()); // use existing ID
                 psDetails.setInt(3, item.getQuantity());
                 psDetails.setDouble(4, item.getPriceBought() * item.getQuantity());
                 psDetails.addBatch();
@@ -138,11 +136,11 @@ public class CreateDeliveryController {
                 psUpdateStock.addBatch();
             }
             
-            // 4. Execute all batches
+            // Execute all batches
             psDetails.executeBatch();
             psUpdateStock.executeBatch();
 
-            // 5. If all queries worked, commit the transaction
+            // If all queries worked, commit the transaction
             con.commit();
             return deliveryNo;
             

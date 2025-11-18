@@ -45,7 +45,7 @@ public class CreatePurchasePanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // ===== Top Panel (Customer) =====
+        // Top Panel
         JPanel topPanel = new JPanel(new BorderLayout(10, 5));
         topPanel.setBackground(Color.WHITE);
         topPanel.setBorder(BorderFactory.createTitledBorder("Purchase a Medicine (Point of Sale)"));
@@ -67,7 +67,7 @@ public class CreatePurchasePanel extends JPanel {
         // Middle Panel (Add to Cart)
         JPanel middlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         middlePanel.setBackground(Color.WHITE);
-        middlePanel.add(new JLabel("Batch ID:"));
+        middlePanel.add(new JLabel("Medicine ID:"));
         medicineIdField = new JTextField(8);
         middlePanel.add(medicineIdField);
         middlePanel.add(new JLabel("Quantity:"));
@@ -84,7 +84,7 @@ public class CreatePurchasePanel extends JPanel {
         add(headerPanel, BorderLayout.NORTH);
 
         // Center Panel (Shopping Cart)
-        String[] columns = {"Batch ID", "Name", "Price", "Qty", "Discount", "Total"};
+        String[] columns = {"Medicine ID", "Name", "Price", "Qty", "Discount", "Total"};
         cartTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -154,19 +154,19 @@ public class CreatePurchasePanel extends JPanel {
                 throw new Exception("Quantity must be greater than 0.");
             }
             
-            // 1. Check if medicine is sellable and get its info
+            // Check if medicine is sellable and get its info
             Medicine medicine = controller.findMedicineBatch(medId);
             
-            // 2. Check if we have enough stock
+            // Check if we have enough stock
             if (qty > medicine.getQuantity()) {
                 throw new SQLException("Not enough stock. Only " + medicine.getQuantity() + " available.");
             }
             
-            // 3. Create CartItem (it will auto-calculate discount)
+            // Create CartItem (it will auto-calculate discount)
             boolean applyDiscount = (currentCustomer.getPwdId() != 0);
             CartItem item = new CartItem(medicine, qty, applyDiscount);
             
-            // 4. Add to cart list and JTable
+            // Add to cart list and JTable
             cart.add(item);
             cartTableModel.addRow(new Object[]{
                 item.getMedicineId(),
@@ -182,7 +182,7 @@ public class CreatePurchasePanel extends JPanel {
             quantityField.setText("");
             
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Batch ID and Quantity must be valid numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Medicine ID and Quantity must be valid numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -200,10 +200,10 @@ public class CreatePurchasePanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                // 1. Call the controller to run the SQL transaction
+                // Call the controller to run the SQL transaction
                 int newPurchaseNo = controller.processPurchase(currentCustomer.getId(), cart);
                 
-                // 2. This is your "Generated Receipt"
+                // This is the 'receipt'
                 JOptionPane.showMessageDialog(this, 
                     "Purchase processed successfully!\nReceipt Number: " + newPurchaseNo, 
                     "Success", JOptionPane.INFORMATION_MESSAGE);

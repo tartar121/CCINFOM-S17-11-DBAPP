@@ -6,11 +6,11 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-import java.awt.Image; // <-- 1. Import the Image class
+import java.awt.Image;
 
 public class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
 
-    // --- Define your style ---
+    // Define your style
     private Font categoryFont = new Font("Arial", Font.BOLD, 15);
     private Font itemFont = new Font("Arial", Font.PLAIN, 14);
     
@@ -18,13 +18,13 @@ public class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
     private Color selectionColor = new Color(184, 207, 229); 
     private Color fontColor = new Color(44, 62, 80); 
     
-    // --- 2. Load and RESIZE your icons ---
-    // This now uses our new helper method to force all icons to 16x16
-    private Icon recordsIcon = loadIcon("icons/records.png"); // 🗄️
-    private Icon transactionsIcon = loadIcon("icons/cart.png"); // 🛒
-    private Icon mgmtIcon = loadIcon("icons/admin.png");      // 📋
-    private Icon reportsIcon = loadIcon("icons/report.png");  // 📈
-    private Icon leafIcon = loadIcon("icons/item.png");       // Default item
+    // Load and RESIZE your icons
+    // Helper method to force all icons to 16x16
+    private Icon recordsIcon = loadIcon("icons/records.png"); 
+    private Icon transactionsIcon = loadIcon("icons/cart.png"); 
+    private Icon mgmtIcon = loadIcon("icons/admin.png");      
+    private Icon reportsIcon = loadIcon("icons/report.png"); 
+    private Icon leafIcon = loadIcon("icons/item.png");      
 
     
     public CustomTreeCellRenderer(Color sidebarBgColor) {
@@ -46,7 +46,7 @@ public class CustomTreeCellRenderer extends DefaultTreeCellRenderer {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
         String nodeText = (String) node.getUserObject();
 
-        // --- Set fonts and icons ---
+        // Set fonts and icon
         if (leaf) {
             setFont(itemFont);
             setIcon(leafIcon);

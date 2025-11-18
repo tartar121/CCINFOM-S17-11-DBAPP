@@ -2,7 +2,7 @@ package View;
 
 import Controller.CreateDeliveryController;
 import Model.Medicine;
-import Model.NewDeliveryItem; // <-- Uses our "Shopping List" class
+import Model.NewDeliveryItem; 
 import Model.Supplier;
 
 import javax.swing.*;
@@ -26,11 +26,11 @@ public class CreateDeliveryPanel extends JPanel {
     // Add item section
     private JTextField medicineIdField;
     private JTextField quantityField;
-    private JButton addToCartButton;
+    private JButton addToDeliveryButton;
 
-    // Cart section
-    private JTable cartTable;
-    private DefaultTableModel cartTableModel;
+    // Delivery section
+    private JTable deliveryTable;
+    private DefaultTableModel deliveryTableModel;
     private JLabel totalLabel;
 
     // Actions
@@ -38,20 +38,20 @@ public class CreateDeliveryPanel extends JPanel {
 
     // State
     private Supplier currentSupplier;
-    private List<NewDeliveryItem> cart;
+    private List<NewDeliveryItem> deliveryList;
     private double currentTotal = 0.0;
 
     public CreateDeliveryPanel(NewMainView mainView) {
         this.controller = new CreateDeliveryController();
-        this.cart = new ArrayList<>();
+        this.deliveryList = new ArrayList<>();
         
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // ===== Top Panel (Customer) =====
+        // Top Panel
         JPanel topPanel = new JPanel(new BorderLayout(10, 5));
         topPanel.setBackground(Color.WHITE);
-        topPanel.setBorder(BorderFactory.createTitledBorder("Delivery of Medicine (Point of Sale)"));
+        topPanel.setBorder(BorderFactory.createTitledBorder("Delivery of Medicine from Supplier"));
         
         JPanel supplierInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         supplierInputPanel.setBackground(Color.WHITE);
@@ -67,17 +67,17 @@ public class CreateDeliveryPanel extends JPanel {
         topPanel.add(supplierInputPanel, BorderLayout.NORTH);
         topPanel.add(supplierStatusLabel, BorderLayout.CENTER);
         
-        // Middle Panel (Add to Cart)
+        // Middle Panel
         JPanel middlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         middlePanel.setBackground(Color.WHITE);
-        middlePanel.add(new JLabel("Batch ID:"));
+        middlePanel.add(new JLabel("Medicine ID:"));
         medicineIdField = new JTextField(8);
         middlePanel.add(medicineIdField);
         middlePanel.add(new JLabel("Quantity:"));
         quantityField = new JTextField(5);
         middlePanel.add(quantityField);
-        addToCartButton = new JButton("Add to Cart");
-        middlePanel.add(addToCartButton);
+        addToDeliveryButton = new JButton("Add to Delivery List");
+        middlePanel.add(addToDeliveryButton);
         
         // Add Top and Middle to a combined header
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -86,17 +86,17 @@ public class CreateDeliveryPanel extends JPanel {
         
         add(headerPanel, BorderLayout.NORTH);
 
-        // Center Panel (Shopping Cart)
-        String[] columns = {"Batch ID", "Name", "Price", "Qty", "Total"};
-        cartTableModel = new DefaultTableModel(columns, 0) {
+        // Center Panel (Shopping deliveryList)
+        String[] columns = {"Medicine ID", "Name", "Price", "Qty", "Total"};
+        deliveryTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        cartTable = new JTable(cartTableModel);
+        deliveryTable = new JTable(deliveryTableModel);
         
-        add(new JScrollPane(cartTable), BorderLayout.CENTER);
+        add(new JScrollPane(deliveryTable), BorderLayout.CENTER);
 
         // Bottom Panel (Total & Actions)
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -107,7 +107,7 @@ public class CreateDeliveryPanel extends JPanel {
         JPanel actionButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         actionButtonPanel.setBackground(Color.WHITE);
         completeDeliveryButton = new JButton("Complete Delivery");
-        completeDeliveryButton.setEnabled(false); // Disabled until items are in cart
+        completeDeliveryButton.setEnabled(false); // Disabled until items are in list/rows
         
         actionButtonPanel.add(completeDeliveryButton);
         
@@ -120,7 +120,7 @@ public class CreateDeliveryPanel extends JPanel {
 
         // Action Listeners
         findSupplierButton.addActionListener(e -> findCustomer());
-        addToCartButton.addActionListener(e -> addItemToCart());
+        addToDeliveryButton.addActionListener(e -> addItemTodeliveryList());
         completeDeliveryButton.addActionListener(e -> processDelivery());
     }
 
@@ -144,7 +144,7 @@ public class CreateDeliveryPanel extends JPanel {
         }
     }
 
-    private void addItemToCart() {
+    private void addItemTodeliveryList() {
         try {
             int medId = Integer.parseInt(medicineIdField.getText().trim());
             int qty = Integer.parseInt(quantityField.getText().trim());
@@ -153,16 +153,15 @@ public class CreateDeliveryPanel extends JPanel {
                 throw new Exception("Quantity must be greater than 0.");
             }
             
-            // 1. Check if medicine is sellable and get its info
+            // Check if medicine is sellable and get its info
             Medicine medicine = controller.findMedicineBatch(medId);
             
-            
-            // 3. Create CartItem (it will auto-calculate discount)
+            // Create deliveryListItem (it will auto-calculate discount)
             NewDeliveryItem item = new NewDeliveryItem(medicine, qty);
             
-            // 4. Add to cart list and JTable
-            cart.add(item);
-            cartTableModel.addRow(new Object[]{
+            // Add to deliveryList list and JTable
+            deliveryList.add(item);
+            deliveryTableModel.addRow(new Object[]{
                 item.getMedicineId(),
                 item.getName(),
                 item.getPriceBought(),
@@ -175,15 +174,15 @@ public class CreateDeliveryPanel extends JPanel {
             quantityField.setText("");
             
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Batch ID and Quantity must be valid numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Medicine ID and Quantity must be valid numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void processDelivery() {
-        if (cart.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Shopping cart is empty.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (deliveryList.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Delivery list is empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -193,10 +192,10 @@ public class CreateDeliveryPanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                // 1. Call the controller to run the SQL transaction
-                int newDeliveryNo = controller.processDelivery(currentSupplier.getId(), cart);;
+                // Call the controller to run the SQL transaction
+                int newDeliveryNo = controller.processDelivery(currentSupplier.getId(), deliveryList);;
                 
-                // 2. This is your "Generated Receipt"
+                // This is the 'receipt'
                 JOptionPane.showMessageDialog(this, 
                     "Purchase processed successfully!\nReceipt Number: " + newDeliveryNo, 
                     "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -210,7 +209,7 @@ public class CreateDeliveryPanel extends JPanel {
     
     private void updateTotal() {
         currentTotal = 0.0;
-        for (NewDeliveryItem item : cart) {
+        for (NewDeliveryItem item : deliveryList) {
             currentTotal += item.getTotal();
         }
         totalLabel.setText(String.format("Total: P%.2f", currentTotal));
@@ -219,7 +218,7 @@ public class CreateDeliveryPanel extends JPanel {
     private void enableSaleControls(boolean enabled) {
         medicineIdField.setEnabled(enabled);
         quantityField.setEnabled(enabled);
-        addToCartButton.setEnabled(enabled);
+        addToDeliveryButton.setEnabled(enabled);
         completeDeliveryButton.setEnabled(enabled);
     }
     
@@ -230,8 +229,8 @@ public class CreateDeliveryPanel extends JPanel {
         
         medicineIdField.setText("");
         quantityField.setText("");
-        cartTableModel.setRowCount(0);
-        cart.clear();
+        deliveryTableModel.setRowCount(0);
+        deliveryList.clear();
         updateTotal();
         
         currentSupplier = null;

@@ -127,20 +127,19 @@ public class ReturnPanel extends JPanel{
         }
     }
 
-    // --- REPLACE THIS METHOD ---
     private void updateReturn() {
         try {
             int rNo = Integer.parseInt(rNoField.getText().trim());
             
-            // 1. Get the 'current' record to find the OLD status
+            // Get the 'current' record to find the OLD status
             Return current = retcontroller.getReturnByNo(rNo);
             if (current == null) {
                 JOptionPane.showMessageDialog(this, "Return No not found.");
                 return;
             }
-            String oldStatus = current.getReturnStatus(); // <-- Get the old status
+            String oldStatus = current.getReturnStatus(); // Get the old status
 
-            // 2. Get the new values from the form
+            // Get the new values from the form
             int sId = sIdField.getText().trim().isEmpty() ? current.getSupplierId() : Integer.parseInt(sIdField.getText().trim());
             String reason = reasonField.getText().trim().isEmpty() ? current.getReason() : reasonField.getText().trim();
             LocalDate reqDate = parseDate(reqDateField.getText());
@@ -149,7 +148,7 @@ public class ReturnPanel extends JPanel{
             
             Return updated = new Return(rNo, sId, reason, reqDate, shipDate, status);
             
-            // 3. Call the new "smart" update method
+            // Call the new update method
             retcontroller.updateReturn(updated, oldStatus); 
             
             JOptionPane.showMessageDialog(this, "Return updated successfully!");
@@ -230,7 +229,6 @@ public class ReturnPanel extends JPanel{
         }
     }
 
-    // ... (loadReturns and clearFields methods stay the same) ...
     private void loadReturns() {
         try {
             List<Return> returns = retcontroller.getAllReturns();

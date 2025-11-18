@@ -115,7 +115,6 @@ public class SupplierPanel extends JPanel {
         }
     }
 
-
     private void viewSupplier() {
         try {
             int id = Integer.parseInt(idField.getText().trim());

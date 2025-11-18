@@ -1,11 +1,9 @@
 package Controller;
 
 import DB.Database;
-import Model.CartItem;   // The "Shopping List" 📝
-import Model.Customer; // The Core Record
-import Model.Medicine; // The Core Record (Batch)
-// We DO NOT need to import Purchase or PurchaseDetails here.
-// The controller will build the SQL directly.
+import Model.CartItem;
+import Model.Customer; 
+import Model.Medicine; 
 
 import java.sql.*;
 import java.util.List;
@@ -70,13 +68,11 @@ public class CreatePurchaseController {
             );
             con.close();
 
-            // Check rules that the trigger *doesn't* check
+            // Check rules that the trigger doesn't check
             if (m.getQuantity() <= 0) {
                 throw new SQLException("Medicine '" + m.getName() + "' (Batch ID: " + m.getId() + ") is out of stock.");
             }
-            // Note: The trigger `prevent_expired_or_discontinued_sale`
-            // will automatically block expired/discontinued items, but we
-            // check here *before* the transaction to give a better error.
+
             if (m.isDiscontinued()) {
                 throw new SQLException("Medicine '" + m.getName() + "' is discontinued.");
             }
@@ -100,13 +96,13 @@ public class CreatePurchaseController {
         try {
             con.setAutoCommit(false); // START TRANSACTION
             
-            // 1. Create the main `purchase` record (Step 4.1.c)
+            // Create the main `purchase` record (Step 4.1.c)
             String sqlPurchase = "INSERT INTO purchase (customer_id, purchase_date) VALUES (?, CURDATE())";
             PreparedStatement psPurchase = con.prepareStatement(sqlPurchase, Statement.RETURN_GENERATED_KEYS);
             psPurchase.setInt(1, customerId);
             psPurchase.executeUpdate();
 
-            // 2. Get the new auto-generated purchase_no
+            // Get the new auto-generated purchase_no
             ResultSet rsKeys = psPurchase.getGeneratedKeys();
             int purchaseNo;
             if (rsKeys.next()) {
@@ -115,20 +111,19 @@ public class CreatePurchaseController {
                 throw new SQLException("Failed to create purchase record, no ID obtained.");
             }
 
-            // 3. Prepare batch statements
             
-            // This fulfills "Recording... in purchase_details" (Step 4.1.d)
+            // "Recording... in purchase_details" (Step 4.1.d)
             String sqlDetails = "INSERT INTO purchase_details (purchase_no, medicine_id, quantity_ordered, discount, total) " +
                                 "VALUES (?, ?, ?, ?, ?)";
             PreparedStatement psDetails = con.prepareStatement(sqlDetails);
 
-            // This fulfills "Updating the medicine record" (Step 4.1.e)
+            // "Updating the medicine record" (Step 4.1.e)
             String sqlUpdate = "UPDATE medicine SET quantity_in_stock = quantity_in_stock - ? " +
                                "WHERE medicine_id = ?";
             PreparedStatement psUpdate = con.prepareStatement(sqlUpdate);
 
             for (CartItem item : cart) {
-                // Add to purchase_details batch
+                // Add to purchase_details
                 psDetails.setInt(1, purchaseNo);
                 psDetails.setInt(2, item.getMedicineId());
                 psDetails.setInt(3, item.getQuantityOrdered());
@@ -136,17 +131,17 @@ public class CreatePurchaseController {
                 psDetails.setDouble(5, item.getLineTotal());
                 psDetails.addBatch();
                 
-                // Add to medicine update batch (deducts stock)
+                // Add to medicine update (deducts stock)
                 psUpdate.setInt(1, item.getQuantityOrdered());
                 psUpdate.setInt(2, item.getMedicineId());
                 psUpdate.addBatch();
             }
             
-            // 4. Execute all batches
+            // Execute all batches
             psDetails.executeBatch(); // This will trigger `prevent_expired_or_discontinued_sale`
             psUpdate.executeBatch();
             
-            // 5. If all queries worked, commit the transaction
+            // If all queries worked, commit the transaction
             con.commit();
             
             return purchaseNo; // Return the new ID for the receipt

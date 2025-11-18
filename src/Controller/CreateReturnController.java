@@ -53,11 +53,6 @@ public class CreateReturnController {
         do {
             LocalDate shipDate = (rs.getDate("shipped_date") != null) ? rs.getDate("shipped_date").toLocalDate() : null;
             
-            // This logic implements the 7-day rule check by fetching the shipped_date.
-            // Your proposal is a bit ambiguous if the 7-day rule is for *all* returns
-            // or just some. Here, we fetch the date so you can enforce it if needed.
-            // For now, we'll just return all expired/discontinued items.
-            
             items.add(new ReturnableItem(
                 rs.getInt("medicine_id"),
                 rs.getString("medicine_name"),
@@ -81,10 +76,10 @@ public class CreateReturnController {
     public void processReturn(int supplierId, List<ReturnableItem> itemsToReturn) throws SQLException {
         Connection con = Database.connectdb();
         try {
-            // 1. Turn off auto-commit. This is a transaction.
+            // Turn off auto-commit and start Transaction
             con.setAutoCommit(false); 
 
-            // 2. Create the main `return` record with status 'Requested'
+            // Create the main `return` record with status 'Requested'
             String sqlReturn = "INSERT INTO `return` (supplier_id, reason, request_date, shipped_date, return_status) " +
                                "VALUES (?, ?, CURDATE(), NULL, NULL)"; // <-- 1. FIX: Status is 'Requested'
             PreparedStatement psReturn = con.prepareStatement(sqlReturn, Statement.RETURN_GENERATED_KEYS);
@@ -92,7 +87,7 @@ public class CreateReturnController {
             psReturn.setString(2, "Expired/Discontinued");
             psReturn.executeUpdate();
 
-            // 3. Get the new auto-generated return_no
+            // Get the new auto-generated return_no
             ResultSet rsKeys = psReturn.getGeneratedKeys();
             int returnNo;
             if (rsKeys.next()) {
@@ -101,16 +96,13 @@ public class CreateReturnController {
                 throw new SQLException("Failed to create return record, no ID obtained.");
             }
 
-            // 4. Prepare batch statement for `return_details` ONLY
+            // Prepare batch statement for `return_details` ONLY
             String sqlDetails = "INSERT INTO return_details (return_no, medicine_id, delivery_no, " +
                                 "price_returned, quantity_returned) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement psDetails = con.prepareStatement(sqlDetails);
 
             String sqlUpdateStock = "UPDATE medicine SET quantity_in_stock = quantity_in_stock - ? WHERE medicine_id = ?";
             PreparedStatement psUpdateStock = con.prepareStatement(sqlUpdateStock);
-
-            // 5. --- ALL psUpdate CODE IS DELETED ---
-            // We are no longer updating the medicine stock here.
 
             for (ReturnableItem item : itemsToReturn) {
                 // Add to return_details batch
@@ -126,19 +118,19 @@ public class CreateReturnController {
                 psUpdateStock.addBatch();
             }
             
-            // 6. Execute ONLY the details batch
+            // Execute ONLY the details batch
             psDetails.executeBatch();
             psUpdateStock.executeBatch();
             
-            // 7. If all queries worked, commit the transaction
+            // If all queries worked, commit the transaction
             con.commit();
             
         } catch (SQLException e) {
-            // 8. If any query failed, roll back all changes
+            // If any query failed, roll back all changes
             con.rollback(); 
             throw e; 
         } finally {
-            // 9. Always turn auto-commit back on and close
+            // Always turn auto-commit back on and close
             con.setAutoCommit(true);
             con.close();
         }

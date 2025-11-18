@@ -95,7 +95,7 @@ public class DeliveryPanel extends JPanel{
         return LocalDate.parse(text.trim(), dateFormatter);
     }
     
-    // Simple "Admin" Add.
+    // Admin Add
     private void addDelivery() {
         try {
             int dNo = Integer.parseInt(dNoField.getText().trim());
@@ -119,8 +119,9 @@ public class DeliveryPanel extends JPanel{
     }
     
     /**
-     * This is the "Admin" update, which now also updates stock
-     * if the status is changed to "Delivered"
+     * Admin Update
+     * if the status is changed to 'Delivered', 
+     * the stock of the medicines in that delivery are updated accordingly
      */
     private void updateDelivery() {
         try {
@@ -229,9 +230,6 @@ public class DeliveryPanel extends JPanel{
             JOptionPane.showMessageDialog(this, "Error loading deliveries: " + e.getMessage());
         }
     }
-    
-    // All the ...Details... methods are GONE.
-    // They belonged to a different panel
 
     private void clearFields() {
         dNoField.setText("");

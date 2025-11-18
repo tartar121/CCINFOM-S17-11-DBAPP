@@ -39,7 +39,7 @@ public class ReturnController {
         return null;
     }
 
-    // This is the simple "Admin" Add.
+    // Admin Add
     public void addReturn(Return r) throws SQLException {
         Connection con = Database.connectdb();
         String sql = "INSERT INTO `return` (return_no, supplier_id, reason, request_date, shipped_date, return_status)"
@@ -57,16 +57,15 @@ public class ReturnController {
     }
 
     /**
-     * This is the "Admin" 🗄️ update. This is where the status
-     * gets changed from 'Requested' to 'Returned' or 'Cancelled'.
-     * THIS IS THE FIX.
+     * Admin Update
+     * 'Returned' or 'Cancelled'.
      */
     public void updateReturn(Return r, String oldStatus) throws SQLException {
         Connection con = Database.connectdb();
         con.setAutoCommit(false); // Start a transaction
 
         try {
-            // 1. Update the main 'return' record
+            // Update the main 'return' record
             String sql = "UPDATE `return` SET supplier_id=?, reason=?, request_date=?, shipped_date=?, return_status=? WHERE return_no=?";
             PreparedStatement ps = con.prepareStatement(sql);
     
@@ -79,9 +78,8 @@ public class ReturnController {
     
             ps.executeUpdate();
 
-            // 2. --- THIS IS THE CRITICAL LOGIC ---
             // If the Admin just set the status to 'Returned'
-            // (and it was 'Requested' before), we remove the stock.
+            // remove the stock.
             if ("Returned".equals(r.getReturnStatus()) && "Requested".equals(oldStatus)) {
                 
                 // This query finds all medicine batches in 'return_details'
@@ -130,7 +128,7 @@ public class ReturnController {
     
     /**
      * This gets the "details" for a specific return,
-     * fulfilling the "view details" requirement.
+     * fulfilling the "view details" requirement
      */
     public List<ReturnDetailsDisplay> getDetailsForReturn(int returnNo) throws SQLException {
         List<ReturnDetailsDisplay> details = new ArrayList<>();

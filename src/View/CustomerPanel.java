@@ -19,7 +19,7 @@ public class CustomerPanel extends JPanel {
         cuscontroller = new CustomerController();
         setLayout(new BorderLayout());
 
-        // ===== Top Form Panel =====
+        // Top Panel
         JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(BorderFactory.createTitledBorder("Add/View/Update Customer (cannot delete, if you want to delete change status to inactive)"));
@@ -43,7 +43,7 @@ public class CustomerPanel extends JPanel {
 
         add(formPanel, BorderLayout.NORTH);
 
-        // ===== Button Panel =====
+        // Button Panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(Color.WHITE);
         JButton addButton = new JButton("Add Customer");
@@ -63,7 +63,7 @@ public class CustomerPanel extends JPanel {
         buttonPanel.add(refreshButton); // Add refresh button to reload table data
         add(buttonPanel, BorderLayout.SOUTH);
 
-        // ===== Table =====
+        // Table
         String[] columns = {"ID", "Name", "Contact info", "Senior or pwd id", "Status"};
         tableModel = new DefaultTableModel(columns, 0);
         custable = new JTable(tableModel);

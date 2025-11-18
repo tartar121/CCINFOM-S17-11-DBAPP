@@ -19,28 +19,28 @@ public class ImagePanel extends JPanel {
     public ImagePanel(ImageIcon icon, float opacity) {
         this.image = icon.getImage();
         this.opacity = opacity;
-        // Use GridBagLayout to easily center the components (like your JLabel)
+        // Use GridBagLayout to easily center the components (like JLabel)
         setLayout(new GridBagLayout()); 
     }
 
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g); // This paints the regular background (e.g., Color.WHITE)
+        super.paintComponent(g); // This paints the regular background (Color.WHITE)
         
         Graphics2D g2d = (Graphics2D) g.create();
         
-        // 1. Set the low opacity
-        // This is the "fading" effect you wanted
+        // Set the low opacity
+        // Fading effect
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
         
-        // 2. Calculate coordinates to center the image
+        // Calculate coordinates to center the image
         int x = (this.getWidth() - image.getWidth(null)) / 2;
         int y = (this.getHeight() - image.getHeight(null)) / 2;
         
-        // 3. Draw the watermark
+        // Draw the watermark
         g2d.drawImage(image, x, y, null);
         
-        // 4. Set opacity back to normal so children (the label) paint correctly
+        // Set opacity back to normal so children (the label) paint correctly
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
         
         g2d.dispose();

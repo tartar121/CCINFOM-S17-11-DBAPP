@@ -41,7 +41,7 @@ public class DeliveryController {
         return d;
     }
 
-    // This is a simple Admin "Add" - not the same as the "User" transaction
+    // Admin Add
     public void addDelivery(Delivers d) throws SQLException {
         Connection con = Database.connectdb();
         String sql = "INSERT INTO delivers (delivery_no, supplier_id, request_date, shipped_date, delivery_status)"
@@ -60,15 +60,15 @@ public class DeliveryController {
     }
 
     /**
-     * This is the "Admin" update. This is where the status
-     * gets changed from 'Requested' to 'Delivered' or 'Cancelled'.
+     * Admin Update
+     * gets changed from 'Delivered' or 'Cancelled'.
      */
     public void updateDelivery(Delivers d) throws SQLException {
         Connection con = Database.connectdb();
         con.setAutoCommit(false); // Start a transaction
         
         try {
-            // 1. Update the main 'delivers' record
+            // Update the main 'delivers' record
             String sql = "UPDATE delivers SET supplier_id=?, request_date=?, shipped_date=?, delivery_status=?"
                        + " WHERE delivery_no=?";
             PreparedStatement ps = con.prepareStatement(sql);
@@ -79,13 +79,12 @@ public class DeliveryController {
             ps.setInt(5, d.getdno()); // WHERE clause
             ps.executeUpdate();
 
-            // 2. --- THIS IS THE CRITICAL LOGIC ---
-            // If the Admin just set the status to 'Delivered',
+            // If Admin set the status to 'Delivered',
             // we must now update the stock for all items in that delivery.
             if ("Delivered".equals(d.getStatus())) {
                 
                 // This query finds all items in delivery_details and their requested quantity,
-                // and adds that quantity to the 'medicine' (batch) table.
+                // and adds that quantity to the 'medicine' table
                 String sqlUpdateStock = "UPDATE medicine m " +
                                   "JOIN delivery_details dd ON m.medicine_id = dd.medicine_id " +
                                   "SET m.quantity_in_stock = m.quantity_in_stock + dd.quantity " +

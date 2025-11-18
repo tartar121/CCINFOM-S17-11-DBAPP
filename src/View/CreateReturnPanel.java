@@ -82,18 +82,18 @@ public class CreateReturnPanel extends JPanel {
         try {
             int supplierId = Integer.parseInt(supplierIdField.getText().trim());
 
-            // 1. Call the controller to get items
-            // This method *also* checks if the supplier is active
+            // Call the controller to get items
+            // and also checks if the supplier is active
             currentItems = controller.findReturnableItems(supplierId);
             
-            // 2. If successful, update the status label
+            // If successful, update the status label
             supplierStatusLabel.setText("Supplier (ID: " + supplierId + ") is ACTIVE and has returnable items.");
             supplierStatusLabel.setForeground(new Color(0, 128, 0)); // Dark Green
             
-            // 3. Clear the table
+            // Clear the table
             tableModel.setRowCount(0);
             
-            // 4. Populate the table with returnable items
+            // Populate the table with returnable items
             for (ReturnableItem item : currentItems) {
                 tableModel.addRow(new Object[]{
                     item.getMedicineId(),
@@ -105,7 +105,7 @@ public class CreateReturnPanel extends JPanel {
                 });
             }
             
-            // 5. Enable the return button
+            // Enable the return button
             processReturnButton.setEnabled(true);
             
         } catch (NumberFormatException e) {
@@ -143,10 +143,10 @@ public class CreateReturnPanel extends JPanel {
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                // 1. Call the controller to run the SQL transaction
+                // Call the controller to run the SQL transaction
                 controller.processReturn(supplierId, currentItems);
                 
-                // 2. This is your "Generated Receipt"
+                // This is the 'receipt'
                 JOptionPane.showMessageDialog(this, "Return processed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 clearFormAndSupplier(); // Clear everything
             } catch (SQLException e) {
