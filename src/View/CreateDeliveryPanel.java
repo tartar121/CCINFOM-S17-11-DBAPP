@@ -1,6 +1,7 @@
 package View;
 
 import Controller.CreateDeliveryController;
+import Model.Medicine;
 import Model.NewDeliveryItem; // <-- Uses our "Shopping List" class
 import Model.Supplier;
 
@@ -17,24 +18,40 @@ import java.util.List;
 public class CreateDeliveryPanel extends JPanel {
     private CreateDeliveryController controller;
 
+    // Customer section
     private JTextField supplierIdField;
     private JButton findSupplierButton;
     private JLabel supplierStatusLabel;
-    private JTable newBatchTable;
-    private DefaultTableModel tableModel;
-    private JButton addRowButton;
-    private JButton processDeliveryButton;
-    private int currentSupplierId = -1;
+    
+    // Add item section
+    private JTextField medicineIdField;
+    private JTextField quantityField;
+    private JButton addToCartButton;
+
+    // Cart section
+    private JTable cartTable;
+    private DefaultTableModel cartTableModel;
+    private JLabel totalLabel;
+
+    // Actions
+    private JButton completeDeliveryButton;
+
+    // State
+    private Supplier currentSupplier;
+    private List<NewDeliveryItem> cart;
+    private double currentTotal = 0.0;
 
     public CreateDeliveryPanel(NewMainView mainView) {
         this.controller = new CreateDeliveryController();
+        this.cart = new ArrayList<>();
+        
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // ===== Top Panel (Supplier Input) =====
+        // ===== Top Panel (Customer) =====
         JPanel topPanel = new JPanel(new BorderLayout(10, 5));
         topPanel.setBackground(Color.WHITE);
-        topPanel.setBorder(BorderFactory.createTitledBorder("Receive New Delivery from Supplier"));
+        topPanel.setBorder(BorderFactory.createTitledBorder("Delivery of Medicine (Point of Sale)"));
         
         JPanel supplierInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         supplierInputPanel.setBackground(Color.WHITE);
@@ -50,121 +67,174 @@ public class CreateDeliveryPanel extends JPanel {
         topPanel.add(supplierInputPanel, BorderLayout.NORTH);
         topPanel.add(supplierStatusLabel, BorderLayout.CENTER);
         
-        add(topPanel, BorderLayout.NORTH);
-
-        // Center Panel (New Batches Table)
-        // This table is editable by the user
-        String[] columns = {"Batch ID", "Name", "Price Bought", "Price For Sale", "Quantity", "Exp. Date (YYYY-MM-DD)"};
-        tableModel = new DefaultTableModel(columns, 0);
-        newBatchTable = new JTable(tableModel);
+        // Middle Panel (Add to Cart)
+        JPanel middlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        middlePanel.setBackground(Color.WHITE);
+        middlePanel.add(new JLabel("Batch ID:"));
+        medicineIdField = new JTextField(8);
+        middlePanel.add(medicineIdField);
+        middlePanel.add(new JLabel("Quantity:"));
+        quantityField = new JTextField(5);
+        middlePanel.add(quantityField);
+        addToCartButton = new JButton("Add to Cart");
+        middlePanel.add(addToCartButton);
         
-        add(new JScrollPane(newBatchTable), BorderLayout.CENTER);
+        // Add Top and Middle to a combined header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.add(topPanel, BorderLayout.NORTH);
+        headerPanel.add(middlePanel, BorderLayout.CENTER);
+        
+        add(headerPanel, BorderLayout.NORTH);
 
-        // ===== Bottom Panel (Actions) =====
+        // Center Panel (Shopping Cart)
+        String[] columns = {"Batch ID", "Name", "Price", "Qty", "Total"};
+        cartTableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        cartTable = new JTable(cartTableModel);
+        
+        add(new JScrollPane(cartTable), BorderLayout.CENTER);
+
+        // Bottom Panel (Total & Actions)
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBackground(Color.WHITE);
-        JPanel tableButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addRowButton = new JButton("Add New Row");
-        tableButtons.add(addRowButton);
-
-        JPanel mainButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        mainButtons.setBackground(Color.WHITE);
-        processDeliveryButton = new JButton("Process Delivery");
-        processDeliveryButton.setEnabled(false); // Disabled until supplier is found
+        totalLabel = new JLabel("Total: P0.00");
+        totalLabel.setFont(new Font("Arial", Font.BOLD, 18));
         
-        mainButtons.add(processDeliveryButton);
+        JPanel actionButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actionButtonPanel.setBackground(Color.WHITE);
+        completeDeliveryButton = new JButton("Complete Delivery");
+        completeDeliveryButton.setEnabled(false); // Disabled until items are in cart
         
-        bottomPanel.add(tableButtons, BorderLayout.WEST);
-        bottomPanel.add(mainButtons, BorderLayout.EAST);
+        actionButtonPanel.add(completeDeliveryButton);
+        
+        bottomPanel.add(totalLabel, BorderLayout.WEST);
+        bottomPanel.add(actionButtonPanel, BorderLayout.EAST);
         add(bottomPanel, BorderLayout.SOUTH);
+        
+        // Disable controls until customer is set
+        enableSaleControls(false);
 
-        // ===== Action Listeners =====
-        findSupplierButton.addActionListener(e -> findSupplier());
-        addRowButton.addActionListener(e -> addRow());
-        processDeliveryButton.addActionListener(e -> processDelivery());
+        // Action Listeners
+        findSupplierButton.addActionListener(e -> findCustomer());
+        addToCartButton.addActionListener(e -> addItemToCart());
+        completeDeliveryButton.addActionListener(e -> processDelivery());
     }
 
-    private void findSupplier() {
+    private void findCustomer() {
         try {
             int supplierId = Integer.parseInt(supplierIdField.getText().trim());
-            // This calls the controller to check the business rule
-            Supplier s = controller.findSupplier(supplierId); 
+            currentSupplier = controller.findSupplier(supplierId); // Checks if active
             
-            supplierStatusLabel.setText("Supplier: " + s.getName() + " | Status: " + s.getStatus().toUpperCase());
+            
+            supplierStatusLabel.setText("Supplier: " + currentSupplier.getName() + " | Status: ACTIVE");
             supplierStatusLabel.setForeground(new Color(0, 128, 0)); // Dark Green
-            processDeliveryButton.setEnabled(true);
-            currentSupplierId = s.getId();
+            enableSaleControls(true);
             
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter a valid numeric Supplier ID.", "Input Error", JOptionPane.ERROR_MESSAGE);
         } catch (SQLException e) {
             supplierStatusLabel.setText(e.getMessage());
             supplierStatusLabel.setForeground(Color.RED);
-            processDeliveryButton.setEnabled(false);
-            currentSupplierId = -1;
+            enableSaleControls(false);
+            currentSupplier = null;
         }
     }
 
-    private void addRow() {
-        // Adds an empty, editable row to the table
-        tableModel.addRow(new Object[]{"", "", "", "", "", ""});
+    private void addItemToCart() {
+        try {
+            int medId = Integer.parseInt(medicineIdField.getText().trim());
+            int qty = Integer.parseInt(quantityField.getText().trim());
+
+            if (qty <= 0) {
+                throw new Exception("Quantity must be greater than 0.");
+            }
+            
+            // 1. Check if medicine is sellable and get its info
+            Medicine medicine = controller.findMedicineBatch(medId);
+            
+            
+            // 3. Create CartItem (it will auto-calculate discount)
+            NewDeliveryItem item = new NewDeliveryItem(medicine, qty);
+            
+            // 4. Add to cart list and JTable
+            cart.add(item);
+            cartTableModel.addRow(new Object[]{
+                item.getMedicineId(),
+                item.getName(),
+                item.getPriceBought(),
+                item.getQuantity(),
+                String.format("%.2f", item.getTotal())
+            });
+            
+            updateTotal();
+            medicineIdField.setText("");
+            quantityField.setText("");
+            
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Batch ID and Quantity must be valid numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void processDelivery() {
-        // 1. Create the "Shopping List" 📝 from the JTable
-        List<NewDeliveryItem> itemsToDeliver = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-        try {
-            for (int i = 0; i < tableModel.getRowCount(); i++) {
-                int id = Integer.parseInt(tableModel.getValueAt(i, 0).toString().trim());
-                String name = tableModel.getValueAt(i, 1).toString().trim();
-                double pBought = Double.parseDouble(tableModel.getValueAt(i, 2).toString().trim());
-                double pSale = Double.parseDouble(tableModel.getValueAt(i, 3).toString().trim());
-                int qty = Integer.parseInt(tableModel.getValueAt(i, 4).toString().trim());
-                LocalDate date = LocalDate.parse(tableModel.getValueAt(i, 5).toString().trim(), formatter);
-                
-                if (name.isEmpty()) {
-                    throw new Exception("Medicine Name cannot be empty in row " + (i+1));
-                }
-                
-                itemsToDeliver.add(new NewDeliveryItem(id, name, pBought, pSale, qty, date));
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Invalid data in table. Please check all rows.\nError: " + e.getMessage(), "Input Error", JOptionPane.ERROR_MESSAGE);
+        if (cart.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Shopping cart is empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (itemsToDeliver.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No items in delivery. Please add at least one row.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // 2. Confirm and process
         int confirm = JOptionPane.showConfirmDialog(this, 
-            "Receive " + itemsToDeliver.size() + " new batch(es) from Supplier " + currentSupplierId + "?",
+            "Complete delivery for " + currentSupplier.getName() + "?\nTotal: P" + String.format("%.2f", currentTotal),
             "Confirm Delivery", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                // 3. Call the controller to run the SQL transaction
-                controller.processDelivery(currentSupplierId, itemsToDeliver);
+                // 1. Call the controller to run the SQL transaction
+                int newDeliveryNo = controller.processDelivery(currentSupplier.getId(), cart);;
                 
-                // 4. This is the "Generated Receipt"
-                JOptionPane.showMessageDialog(this, "Delivery processed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                // 2. This is your "Generated Receipt"
+                JOptionPane.showMessageDialog(this, 
+                    "Purchase processed successfully!\nReceipt Number: " + newDeliveryNo, 
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
                 clearForm();
+                
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Transaction Failed: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
     
+    private void updateTotal() {
+        currentTotal = 0.0;
+        for (NewDeliveryItem item : cart) {
+            currentTotal += item.getTotal();
+        }
+        totalLabel.setText(String.format("Total: P%.2f", currentTotal));
+    }
+    
+    private void enableSaleControls(boolean enabled) {
+        medicineIdField.setEnabled(enabled);
+        quantityField.setEnabled(enabled);
+        addToCartButton.setEnabled(enabled);
+        completeDeliveryButton.setEnabled(enabled);
+    }
+    
     private void clearForm() {
         supplierIdField.setText("");
-        supplierStatusLabel.setText("Status: (Please find a supplier)");
+        supplierStatusLabel.setText("Status: (Please find a customer)");
         supplierStatusLabel.setForeground(Color.BLUE);
-        tableModel.setRowCount(0);
-        currentSupplierId = -1;
-        processDeliveryButton.setEnabled(false);
+        
+        medicineIdField.setText("");
+        quantityField.setText("");
+        cartTableModel.setRowCount(0);
+        cart.clear();
+        updateTotal();
+        
+        currentSupplier = null;
+        enableSaleControls(false);
     }
 }

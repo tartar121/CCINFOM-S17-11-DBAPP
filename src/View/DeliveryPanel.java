@@ -48,7 +48,7 @@ public class DeliveryPanel extends JPanel{
         formPanel.add(reqDateField);
         formPanel.add(new JLabel("Shipped Date (YYYY-MM-DD)"));
         formPanel.add(shipDateField);
-        formPanel.add(new JLabel("Status (Requested/Delivered/Cancelled)"));
+        formPanel.add(new JLabel("Status (Delivered/Cancelled)"));
         formPanel.add(statusField);
 
         add(formPanel, BorderLayout.NORTH);
@@ -66,15 +66,14 @@ public class DeliveryPanel extends JPanel{
         JButton viewDetailsButton = new JButton("View Details");
         viewDetailsButton.addActionListener(e -> viewDetails());
 
-        // Refresh Button 
         JButton refreshButton = new JButton("Refresh Table");
         refreshButton.addActionListener(e -> loadDeliveries());
         
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
-        buttonPanel.add(viewDetailsButton); 
-        buttonPanel.add(refreshButton); // Add refresh button to reload table data
+        buttonPanel.add(viewDetailsButton);
+        buttonPanel.add(refreshButton); 
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Table
