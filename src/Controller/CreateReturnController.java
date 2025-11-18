@@ -117,7 +117,7 @@ public class CreateReturnController {
                 psDetails.setInt(1, returnNo);
                 psDetails.setInt(2, item.getMedicineId());
                 psDetails.setInt(3, item.getDeliveryNo());
-                psDetails.setDouble(4, item.getPriceBought()); 
+                psDetails.setDouble(4, item.getTotal()); 
                 psDetails.setInt(5, item.getQuantity());
                 psDetails.addBatch();
 
