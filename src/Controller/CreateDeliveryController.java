@@ -5,6 +5,7 @@ import Model.NewDeliveryItem;     // The "Shopping List" 📝
 import Model.Supplier;            // The Core Record
 import Model.Delivers;            // The "Official Record" 🗄️
 import Model.DeliveryDetails;     // The "Official Record" 🗄️
+import Model.Medicine;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -43,20 +44,59 @@ public class CreateDeliveryController {
             throw new SQLException("Supplier ID not found.");
         }
     }
+    public Medicine findMedicineBatch(int medicineId) throws SQLException {
+        Connection con = Database.connectdb();
+        // This query checks all business rules for selling
+        String sql = "SELECT * FROM medicine WHERE medicine_id = ?";
+        
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, medicineId);
+        ResultSet rs = ps.executeQuery();
 
+        if (rs.next()) {
+            Medicine m = new Medicine(
+                rs.getInt("medicine_id"),
+                rs.getString("medicine_name"),
+                rs.getDouble("price_bought"),
+                rs.getDouble("price_for_sale"),
+                rs.getInt("quantity_in_stock"),
+                rs.getDate("expiration_date").toLocalDate(),
+                rs.getBoolean("discontinued")
+            );
+            con.close();
+            /* don't need this since delivery doesn't check for quantity, exp date, and discontinued
+            // Check rules that the trigger *doesn't* check
+            if (m.getQuantity() <= 0) {
+                throw new SQLException("Medicine '" + m.getName() + "' (Batch ID: " + m.getId() + ") is out of stock.");
+            }
+            // Note: The trigger `prevent_expired_or_discontinued_sale`
+            // will automatically block expired/discontinued items, but we
+            // check here *before* the transaction to give a better error.
+            if (m.isDiscontinued()) {
+                throw new SQLException("Medicine '" + m.getName() + "' is discontinued.");
+            }
+            if (m.getExpirationDate().isBefore(LocalDate.now())) {
+                 throw new SQLException("Medicine '" + m.getName() + "' (Batch ID: " + m.getId() + ") is expired.");
+            }*/
+            return m;
+        } else {
+            con.close();
+            throw new SQLException("Medicine Batch ID not found.");
+        }
+    }
     /**
      * Processes the delivery as a REQUEST.
      * This implements the correct "workflow" logic.
      * It does NOT add stock.
      */
-    public void processDelivery(int supplierId, List<NewDeliveryItem> itemsToDeliver) throws SQLException {
+    public int processDelivery(int supplierId, List<NewDeliveryItem> itemsToDeliver) throws SQLException {
         Connection con = Database.connectdb();
         try {
             con.setAutoCommit(false); // START TRANSACTION
 
             // 1. Create the main `delivers` record with status 'Requested'
             String sqlDeliver = "INSERT INTO delivers (supplier_id, request_date, shipped_date, delivery_status) " +
-                                "VALUES (?, CURDATE(), NULL, 'Requested')"; // <-- 1. FIX: Status is 'Requested'
+                                "VALUES (?, CURDATE(), NULL, NULL)"; // <-- 1. FIX: Status is 'Requested'
             PreparedStatement psDeliver = con.prepareStatement(sqlDeliver, Statement.RETURN_GENERATED_KEYS);
             psDeliver.setInt(1, supplierId);
             psDeliver.executeUpdate();
@@ -74,38 +114,37 @@ public class CreateDeliveryController {
             
             // This fulfills "Adding a new medicine record (batch)"
             // We set stock to 0 because it hasn't arrived yet.
-            String sqlMedicine = "INSERT INTO medicine (medicine_id, medicine_name, price_bought, price_for_sale, " +
-                                 "quantity_in_stock, expiration_date, discontinued) VALUES (?, ?, ?, ?, 0, ?, false)"; // <-- 2. FIX: Qty is 0
-            PreparedStatement psMedicine = con.prepareStatement(sqlMedicine);
 
             // This fulfills "Recording the link... in delivery_details"
             String sqlDetails = "INSERT INTO delivery_details (delivery_no, medicine_id, quantity, total) " +
                                 "VALUES (?, ?, ?, ?)";
             PreparedStatement psDetails = con.prepareStatement(sqlDetails);
 
+            String sqlUpdateStock = "UPDATE medicine SET quantity_in_stock = quantity_in_stock + ? WHERE medicine_id = ?";
+            PreparedStatement psUpdateStock = con.prepareStatement(sqlUpdateStock);
+
+
             for (NewDeliveryItem item : itemsToDeliver) {
                 // Add new batch to `medicine` table
-                psMedicine.setInt(1, item.getMedicineId());
-                psMedicine.setString(2, item.getName());
-                psMedicine.setDouble(3, item.getPriceBought());
-                psMedicine.setDouble(4, item.getPriceForSale());
-                psMedicine.setDate(5, java.sql.Date.valueOf(item.getExpDate())); // <-- 3. FIX: Parameter index
-                psMedicine.addBatch();
-                
                 // Link this batch to the delivery in `delivery_details`
                 psDetails.setInt(1, deliveryNo);
-                psDetails.setInt(2, item.getMedicineId());
-                psDetails.setInt(3, item.getQuantity()); // This is the *requested* quantity
+                psDetails.setInt(2, item.getMedicineId()); // use existing batch ID
+                psDetails.setInt(3, item.getQuantity());
                 psDetails.setDouble(4, item.getPriceBought() * item.getQuantity());
                 psDetails.addBatch();
+
+                psUpdateStock.setInt(1, item.getQuantity());       // Add this many to stock
+                psUpdateStock.setInt(2, item.getMedicineId());    // For this batch
+                psUpdateStock.addBatch();
             }
             
             // 4. Execute all batches
-            psMedicine.executeBatch();
             psDetails.executeBatch();
+            psUpdateStock.executeBatch();
 
             // 5. If all queries worked, commit the transaction
             con.commit();
+            return deliveryNo;
             
         } catch (SQLException e) {
             con.rollback(); // ROLLBACK TRANSACTION

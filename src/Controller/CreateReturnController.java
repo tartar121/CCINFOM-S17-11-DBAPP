@@ -86,7 +86,7 @@ public class CreateReturnController {
 
             // 2. Create the main `return` record with status 'Requested'
             String sqlReturn = "INSERT INTO `return` (supplier_id, reason, request_date, shipped_date, return_status) " +
-                               "VALUES (?, ?, CURDATE(), NULL, 'Requested')"; // <-- 1. FIX: Status is 'Requested'
+                               "VALUES (?, ?, CURDATE(), NULL, NULL)"; // <-- 1. FIX: Status is 'Requested'
             PreparedStatement psReturn = con.prepareStatement(sqlReturn, Statement.RETURN_GENERATED_KEYS);
             psReturn.setInt(1, supplierId);
             psReturn.setString(2, "Expired/Discontinued");
