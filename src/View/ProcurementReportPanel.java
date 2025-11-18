@@ -65,6 +65,7 @@ public class ProcurementReportPanel extends JPanel {
             }
 
             List<ProcurementReport> reportData = controller.getProcurementReport(month, year);
+            tableModel.setRowCount(0);
             
             tableModel.setRowCount(0);
             for (ProcurementReport item : reportData) {

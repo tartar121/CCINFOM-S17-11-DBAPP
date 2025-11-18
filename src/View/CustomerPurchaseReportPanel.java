@@ -62,6 +62,7 @@ public class CustomerPurchaseReportPanel extends JPanel{
             }
 
             List<CustomerPurchaseReport> report= cpController.getCusomerPurchaseReport(month, year);
+            tableModel.setRowCount(0);
             if (report.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                         "No selling records found for this period.",

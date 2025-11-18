@@ -62,6 +62,7 @@ public class MedicineReturnReportPanel extends JPanel{
             }
 
             List<MedicineReturnReport> report= medController.getMedicineReturnReport(month, year);
+            tableModel.setRowCount(0);
             if (report.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                         "No returns records found for this period.",
