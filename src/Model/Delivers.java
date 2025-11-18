@@ -17,6 +17,7 @@ public class Delivers
         shipped_date=sdate;
         delivery_status=ds;
     }
+    // Getters
     public int getdno()
     {
         return delivery_no;

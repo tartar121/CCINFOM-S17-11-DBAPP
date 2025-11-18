@@ -11,6 +11,7 @@ public class ProcurementReport {
         no_of_restocks=norestocks;
         total_amount=total;
     }
+    // Getters
     public int getSID()
     {
         return supplier_id;

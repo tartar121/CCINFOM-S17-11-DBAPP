@@ -1,9 +1,8 @@
 package Model;
 
-// This is the "Shopping List" 📝 helper class for the JTable "shopping cart"
-// It is NOT a database table.
+// Helper class for the JTable "shopping cart"
 public class CartItem {
-    private int medicineId; // This is the Batch ID
+    private int medicineId;
     private String medicineName;
     private int quantityOrdered;
     private double priceForSale;
@@ -16,7 +15,7 @@ public class CartItem {
         this.quantityOrdered = quantity;
         this.priceForSale = medicine.getPriceForSale();
 
-        // This is your business rule for discounts
+        // Business Rules for Discount
         double baseTotal = this.priceForSale * this.quantityOrdered;
         if (applyDiscount) {
             this.discount = baseTotal * 0.20; // 20% discount

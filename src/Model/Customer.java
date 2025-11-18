@@ -15,6 +15,7 @@ public class Customer {
         senior_pwd_id=pwdId;
         customer_status=status;
     }
+    // Getters
     public int getId()
     {
         return customer_id;

@@ -14,6 +14,7 @@ public class MedicineReturnReport {
         total_quantity=totQuan;
         total_returns=totRet;
     }
+    // Getters
     public int getMedID()
     {
         return medicine_id;

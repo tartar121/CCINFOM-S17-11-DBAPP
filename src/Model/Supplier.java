@@ -15,6 +15,8 @@ public class Supplier {
         supplier_contact_info=contactInfo;
         supplier_status=status;
     }
+
+    // Getters
     public int getId() { return supplier_id; }
     public String getName() { return supplier_name; }
     public String getAddress() { return supplier_address; }

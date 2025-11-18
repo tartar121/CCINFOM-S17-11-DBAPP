@@ -15,6 +15,8 @@ public class PurchaseDetails {
         this.discount=discount;
         this.total=total;
     }
+
+    // Getters
     public int getPurchaseNo() { return purchase_no; }
     public int getMedicineId() { return medicine_id; }
     public int getQuantityOrder() { return quantity_order; }

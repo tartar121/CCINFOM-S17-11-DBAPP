@@ -3,9 +3,8 @@ package Model;
 import java.time.LocalDate;
 
 // Helper class to store results of query
-// NOT a database table
 public class ReturnableItem {
-    private int medicineId; // Also the Batch ID
+    private int medicineId;
     private String medicineName;
     private int quantity;
     private LocalDate expirationDate;

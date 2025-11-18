@@ -11,6 +11,7 @@ public class CustomerPurchaseReport {
         no_of_selling=noOfSell;
         total_amount=total;
     }
+    // Getters
     public int getCustomerId()
     {
         return customer_id;

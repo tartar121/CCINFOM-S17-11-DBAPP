@@ -12,6 +12,7 @@ public class DeliveryDetails {
         quantity=quan;
         total=t;
     }
+    // Getters
     public int getDno()
     {
         return delivery_no;

@@ -1,6 +1,6 @@
 package Model;
 
-// Helper class to display purchase details *with* the medicine name
+// Helper class to display purchase details with the medicine name
 public class PurchaseDetailsDisplay {
     private int medicineId;
     private String medicineName;

@@ -12,6 +12,8 @@ public class Purchase {
         this.purchase_date=purchase_date;
         customer_id=cId;
     }
+
+    // Getters
     public int getPurchaseNo() { return purchase_no; }
     public int getCustomerId() { return customer_id; }
     public LocalDate getPurchaseDate() { return purchase_date; }

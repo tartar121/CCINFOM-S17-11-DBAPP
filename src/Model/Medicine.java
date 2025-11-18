@@ -20,6 +20,8 @@ public class Medicine {
         this.expiration_date=expiration_date;
         this.discontinued=discontinued;
     }
+
+    // Getters
     public int getId() { return medicine_id; }
     public String getName() { return medicine_name; }
     public double getPriceBought() { return price_bought; }

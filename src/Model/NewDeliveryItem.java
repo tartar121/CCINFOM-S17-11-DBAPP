@@ -2,10 +2,10 @@ package Model;
 
 import java.time.LocalDate;
 
-// This is the "Shopping List" 📝 helper class
+// Helper class for new delivery items
 // It holds the data from the JTable before it's processed
 public class NewDeliveryItem {
-    private int medicineId; // This is the Batch ID
+    private int medicineId;
     private String medicineName;
     private int quantityOrdered;
     private double priceBought;
