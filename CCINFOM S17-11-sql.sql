@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS medicine;
 DROP TABLE IF EXISTS supplier;
 DROP TABLE IF EXISTS customer;
 
+-- Medicine
 CREATE TABLE medicine (
 	medicine_id INT NOT NULL auto_increment,
     medicine_name VARCHAR(50) NOT NULL,
@@ -23,6 +24,7 @@ CREATE TABLE medicine (
     PRIMARY KEY (medicine_id)
 );
 
+-- Supplier
 CREATE TABLE supplier (
 	supplier_id INT NOT NULL auto_increment,
     supplier_name VARCHAR(100) NOT NULL,
@@ -32,6 +34,7 @@ CREATE TABLE supplier (
     PRIMARY KEY (supplier_id)
 );
 
+-- Customer
 CREATE TABLE customer(
 	customer_id INT NOT NULL auto_increment,
     customer_name VARCHAR(100) NOT NULL,
@@ -41,6 +44,7 @@ CREATE TABLE customer(
     PRIMARY KEY (customer_id)
 );
 
+-- Purchase
 CREATE TABLE purchase(
 	purchase_no INT NOT NULL auto_increment,
     purchase_date DATE NOT NULL,
@@ -49,6 +53,7 @@ CREATE TABLE purchase(
     FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 );
 
+-- Purchase Details
 CREATE TABLE purchase_details(
 	purchase_no INT NOT NULL,
     medicine_id INT NOT NULL,
@@ -60,6 +65,7 @@ CREATE TABLE purchase_details(
     FOREIGN KEY (medicine_id) REFERENCES medicine(medicine_id)
 );
 
+-- Delivery
 CREATE TABLE delivers(
 	delivery_no INT NOT NULL auto_increment,
 	supplier_id INT NOT NULL,
@@ -70,6 +76,7 @@ CREATE TABLE delivers(
 	FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id)
 );
 
+-- Delivery Details
 CREATE TABLE delivery_details(
 	delivery_no INT NOT NULL,
 	medicine_id INT NOT NULL,
@@ -80,6 +87,7 @@ CREATE TABLE delivery_details(
 	FOREIGN KEY (medicine_id) REFERENCES medicine (medicine_id)
 );
 
+-- Return
 CREATE TABLE `return`(
 	return_no INT NOT NULL auto_increment,
 	supplier_id INT NOT NULL,
@@ -91,6 +99,7 @@ CREATE TABLE `return`(
 	FOREIGN KEY (supplier_id) REFERENCES supplier (supplier_id)
 );
 
+-- Return Details
 CREATE TABLE return_details(
 	return_no INT NOT NULL,
 	delivery_no INT NOT NULL,
