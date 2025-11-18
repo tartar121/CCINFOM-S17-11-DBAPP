@@ -106,6 +106,9 @@ public class CreateReturnController {
                                 "price_returned, quantity_returned) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement psDetails = con.prepareStatement(sqlDetails);
 
+            String sqlUpdateStock = "UPDATE medicine SET quantity_in_stock = quantity_in_stock - ? WHERE medicine_id = ?";
+            PreparedStatement psUpdateStock = con.prepareStatement(sqlUpdateStock);
+
             // 5. --- ALL psUpdate CODE IS DELETED ---
             // We are no longer updating the medicine stock here.
 
@@ -117,10 +120,15 @@ public class CreateReturnController {
                 psDetails.setDouble(4, item.getPriceBought()); 
                 psDetails.setInt(5, item.getQuantity());
                 psDetails.addBatch();
+
+                psUpdateStock.setInt(1, item.getQuantity());       // Remove this many to stock
+                psUpdateStock.setInt(2, item.getMedicineId());    // For this batch
+                psUpdateStock.addBatch();
             }
             
             // 6. Execute ONLY the details batch
             psDetails.executeBatch();
+            psUpdateStock.executeBatch();
             
             // 7. If all queries worked, commit the transaction
             con.commit();
