@@ -33,5 +33,6 @@ public class ReturnableItem {
     public int getDeliveryNo() { return deliveryNo; }
     public LocalDate getShippedDate() { return shippedDate; }
     public double getPriceBought() { return priceBought; }
+    public double getTotal() { return priceBought*quantity;}
 
 }
