@@ -15,7 +15,7 @@ public class NewMainView extends JFrame {
     private JPanel mainPanel; 
     private CardLayout cardLayout;
 
-    // All 12 of your content panels
+    // All 12 Content panels
     private MedicinePanel medicinePanel; 
     private SupplierPanel supplierPanel;
     private CustomerPanel customerPanel;
@@ -86,10 +86,10 @@ public class NewMainView extends JFrame {
         
         customerPurchaseReportPanel = new CustomerPurchaseReportPanel(this);
         customerPurchaseReportPanel.setBackground(contentColor);
-        medicineReturnReportPanel = new MedicineReturnReportPanel(this);
-        medicineReturnReportPanel.setBackground(contentColor);
         procurementReportPanel = new ProcurementReportPanel(this);
         procurementReportPanel.setBackground(contentColor);
+        medicineReturnReportPanel = new MedicineReturnReportPanel(this);
+        medicineReturnReportPanel.setBackground(contentColor);
 
         // Create Card Layout Panel (Right Side)
         cardLayout = new CardLayout();
@@ -117,15 +117,15 @@ public class NewMainView extends JFrame {
         mainPanel.add(medicinePanel, "Medicines");
         mainPanel.add(supplierPanel, "Suppliers");
         mainPanel.add(customerPanel, "Customers");
-        mainPanel.add(createPurchasePanel, "Create Purchase");
-        mainPanel.add(createDeliveryPanel, "Request Delivery"); // <-- Name matches tree
+        mainPanel.add(createPurchasePanel, "Make A Purchase");
+        mainPanel.add(createDeliveryPanel, "Request Delivery");
         mainPanel.add(createReturnPanel, "Request Return");     
         mainPanel.add(purchasePanel, "Manage Purchases");
         mainPanel.add(deliveryPanel, "Manage Deliveries");
         mainPanel.add(returnPanel, "Manage Returns");
         mainPanel.add(customerPurchaseReportPanel, "Customer Purchase");
-        mainPanel.add(medicineReturnReportPanel, "Medicine Return");
         mainPanel.add(procurementReportPanel, "Procurement (Delivery)");
+        mainPanel.add(medicineReturnReportPanel, "Medicine Return");
 
         cardLayout.show(mainPanel, "welcome");
 
@@ -161,7 +161,7 @@ public class NewMainView extends JFrame {
         root.add(records);
 
         DefaultMutableTreeNode transactions = new DefaultMutableTreeNode("Transactions");
-        transactions.add(new DefaultMutableTreeNode("Create Purchase"));
+        transactions.add(new DefaultMutableTreeNode("Make A Purchase"));
         transactions.add(new DefaultMutableTreeNode("Request Delivery"));
         transactions.add(new DefaultMutableTreeNode("Request Return"));
         root.add(transactions);
@@ -174,8 +174,8 @@ public class NewMainView extends JFrame {
 
         DefaultMutableTreeNode reports = new DefaultMutableTreeNode("Reports");
         reports.add(new DefaultMutableTreeNode("Customer Purchase"));
-        reports.add(new DefaultMutableTreeNode("Medicine Return"));
         reports.add(new DefaultMutableTreeNode("Procurement (Delivery)"));
+        reports.add(new DefaultMutableTreeNode("Medicine Return"));
         root.add(reports);
 
         return root;
