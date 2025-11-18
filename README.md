@@ -2,7 +2,7 @@
 
 A comprehensive database application built to manage the daily operations of a pharmacy. This project fulfills the requirements for the **CCINFOM (Information Management)** course at **De La Salle University**.
 
-The system shows inventory tracking, sales processing, and supplier interactions using a structured **MySQL** database and a professional **Java Swing** interface.
+The system shows inventory tracking, sales processing, and supplier interactions using a structured **MySQL** database and **Java Swing** interface.
 
 ---
 
@@ -11,7 +11,7 @@ The system shows inventory tracking, sales processing, and supplier interactions
 The application is designed with distinct roles in mind: the **Pharmacist (User)** who performs daily transactions, and the **Manager (Admin)** who maintains records and generates reports.
 
 ### 1. Records Management 🗄️ (Admin View)
-_Centralized management for the pharmacy's core data._
+_Management for the pharmacy's core data._
 * **Medicine Management:** Create and update medicine batches (Batch ID, Price, Expiry).
 * **Supplier Management:** Maintain a directory of active and inactive suppliers.
 * **Customer Management:** Track customer details and Senior/PWD status for automatic discounts.
@@ -21,7 +21,7 @@ _Complex business processes with validation and automated stock adjustments._
 * **Point of Sale (Purchase):**
     * "Cash Register" style interface for pharmacists.
     * **Instant Processing:** Automatically deducts stock and saves transaction details upon sale.
-    * **Smart Discounts:** Automatically applies a 20% discount for registered Senior/PWD customers.
+    * **Discounts:** Automatically applies a 20% discount for registered Senior/PWD customers.
 * **Delivery Request:**
     * **2-Step Workflow:** Pharmacists _request_ a delivery (status: 'Requested', stock: 0).
     * Prevents "ghost inventory" from appearing before it physically arrives.
@@ -34,7 +34,7 @@ _Oversight tools for the Manager/Admin._
 * **Delivery Completion:** Admin verifies received goods and updates status to **'Delivered'**, which officially adds the items to inventory.
 * **Return Confirmation:** Admin approves returns (status: **'Returned'**), which triggers the official removal of stock.
 
-### 4. Reports 📈 (Manager View)
+### 4. Reports 📈
 _Insights for decision making._
 * **Procurement Report:** View total restocks and costs per supplier for a specific month.
 * **Customer Purchase Report:** Track spending habits of customers.
