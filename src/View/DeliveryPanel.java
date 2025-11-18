@@ -65,11 +65,16 @@ public class DeliveryPanel extends JPanel{
         
         JButton viewDetailsButton = new JButton("View Details");
         viewDetailsButton.addActionListener(e -> viewDetails());
+
+        // Refresh Button 
+        JButton refreshButton = new JButton("Refresh Table");
+        refreshButton.addActionListener(e -> loadDeliveries());
         
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
         buttonPanel.add(viewDetailsButton); 
+        buttonPanel.add(refreshButton); // Add refresh button to reload table data
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Table

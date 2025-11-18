@@ -53,9 +53,14 @@ public class CustomerPanel extends JPanel {
         JButton viewButton = new JButton("View Customer");
         viewButton.addActionListener(e -> viewCustomer());
 
+        // Refresh Button 
+        JButton refreshButton = new JButton("Refresh Table");
+        refreshButton.addActionListener(e -> loadCustomers());
+
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
+        buttonPanel.add(refreshButton); // Add refresh button to reload table data
         add(buttonPanel, BorderLayout.SOUTH);
 
         // ===== Table =====

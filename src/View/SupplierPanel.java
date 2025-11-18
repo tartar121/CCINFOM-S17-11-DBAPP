@@ -53,9 +53,14 @@ public class SupplierPanel extends JPanel {
         JButton viewButton = new JButton("View Supplier");
         viewButton.addActionListener(e -> viewSupplier());
 
+        // Refresh Button 
+        JButton refreshButton = new JButton("Refresh Table");
+        refreshButton.addActionListener(e -> loadSuppliers());
+
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
+        buttonPanel.add(refreshButton); // Add refresh button to reload table data
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Table

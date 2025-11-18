@@ -62,9 +62,14 @@ public class MedicinePanel extends JPanel {
         JButton viewButton = new JButton("View Medicine");
         viewButton.addActionListener(e -> viewMedicine());
 
+        // Refresh Button 
+        JButton refreshButton = new JButton("Refresh Table");
+        refreshButton.addActionListener(e -> loadMedicines());
+
         buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
+        buttonPanel.add(refreshButton); // Add refresh button to reload table data
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Table
