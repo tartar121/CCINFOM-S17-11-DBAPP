@@ -60,8 +60,8 @@ public class ReturnPanel extends JPanel{
         // Button Panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(Color.WHITE);
-        JButton addButton = new JButton("Add Return");
-        addButton.addActionListener(e -> addReturn());
+        // JButton addButton = new JButton("Add Return");
+        // addButton.addActionListener(e -> addReturn());
         JButton updateButton = new JButton("Update Return");
         updateButton.addActionListener(e -> updateReturn());
         JButton viewButton = new JButton("View Return");
@@ -74,7 +74,7 @@ public class ReturnPanel extends JPanel{
         JButton refreshButton = new JButton("Refresh Table");
         refreshButton.addActionListener(e -> loadReturns());
 
-        buttonPanel.add(addButton);
+        // buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
         buttonPanel.add(viewDetailsButton);

@@ -50,8 +50,8 @@ public class PurchasePanel extends JPanel {
         // Button Panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(Color.WHITE); 
-        JButton addButton = new JButton("Add Purchase");
-        addButton.addActionListener(e -> addPurchase());
+        // JButton addButton = new JButton("Add Purchase");
+        // addButton.addActionListener(e -> addPurchase());
         JButton updateButton = new JButton("Update Purchase");
         updateButton.addActionListener(e -> updatePurchase());
         JButton viewButton = new JButton("View Purchase");
@@ -64,7 +64,7 @@ public class PurchasePanel extends JPanel {
         JButton refreshButton = new JButton("Refresh Table");
         refreshButton.addActionListener(e -> loadPurchases());
         
-        buttonPanel.add(addButton);
+        // buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
         buttonPanel.add(viewDetailsButton);

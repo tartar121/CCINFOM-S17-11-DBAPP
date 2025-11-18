@@ -56,8 +56,8 @@ public class DeliveryPanel extends JPanel{
         // Button Panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(Color.WHITE);
-        JButton addButton = new JButton("Add Delivery");
-        addButton.addActionListener(e -> addDelivery());
+        // JButton addButton = new JButton("Add Delivery");
+        // addButton.addActionListener(e -> addDelivery());
         JButton updateButton = new JButton("Update Delivery");
         updateButton.addActionListener(e -> updateDelivery());
         JButton viewButton = new JButton("View Delivery");
@@ -69,7 +69,7 @@ public class DeliveryPanel extends JPanel{
         JButton refreshButton = new JButton("Refresh Table");
         refreshButton.addActionListener(e -> loadDeliveries());
         
-        buttonPanel.add(addButton);
+        // buttonPanel.add(addButton);
         buttonPanel.add(updateButton);
         buttonPanel.add(viewButton);
         buttonPanel.add(viewDetailsButton);
