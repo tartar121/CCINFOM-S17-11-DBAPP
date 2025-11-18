@@ -40,7 +40,7 @@ public class CreateReturnController {
 
         if (!rs.isBeforeFirst()) { // No items found
             con.close();
-            throw new SQLException("No returnable (expired/discontinued) items found for Supplier ID: " + supplierId);
+            throw new SQLException("No returnable (discontinued/expired/undelivered/old) items found for Supplier ID: " + supplierId);
         }
 
         // Check supplier status (Business Rule from proposal)
