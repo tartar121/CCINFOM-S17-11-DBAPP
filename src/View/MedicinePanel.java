@@ -83,6 +83,11 @@ public class MedicinePanel extends JPanel {
 
     private void addMedicine() {
         try {
+            if (!(idField.getText().isEmpty()))
+            {
+                JOptionPane.showMessageDialog(this, "Cannot add supplier. ID is determined by the system.");
+                return;
+            }
             String name = nameField.getText().trim();
             double priceBought = Double.parseDouble(priceBoughtField.getText().trim());
             double priceForSale = Double.parseDouble(priceSaleField.getText().trim());

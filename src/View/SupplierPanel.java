@@ -74,6 +74,11 @@ public class SupplierPanel extends JPanel {
 
     private void addSupplier() {
         try {
+            if (!(idField.getText().isEmpty()))
+            {
+                JOptionPane.showMessageDialog(this, "Cannot add supplier. ID is determined by the system.");
+                return;
+            }
             String name = nameField.getText().trim();
             String address = addressField.getText().trim();
             String contact = contactField.getText().trim();
