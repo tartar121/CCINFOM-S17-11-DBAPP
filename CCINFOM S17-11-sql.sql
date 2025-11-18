@@ -66,7 +66,7 @@ delivery_no INT NOT NULL auto_increment,
 supplier_id INT NOT NULL,
 request_date DATE NOT NULL,
 shipped_date DATE,
-delivery_status ENUM('Requested','Delivered','Cancelled'),
+delivery_status ENUM('Delivered','Cancelled'),
 PRIMARY KEY (delivery_no),
 FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id)
 );
@@ -87,21 +87,22 @@ supplier_id INT NOT NULL,
 reason VARCHAR(250) NOT NULL,
 request_date DATE,
 shipped_date DATE,
-return_status ENUM('Requested','Returned','Cancelled'),
+return_status ENUM('Returned','Cancelled'),
 PRIMARY KEY (return_no),
 FOREIGN KEY (supplier_id) REFERENCES supplier (supplier_id)
 );
 
 CREATE TABLE return_details(
 return_no INT NOT NULL,
-medicine_id INT NOT NULL,
 delivery_no INT NOT NULL,
+medicine_id INT NOT NULL,
 price_returned DECIMAL(10,2) NOT NULL CHECK (price_returned>0),
 quantity_returned INT NOT NULL CHECK (quantity_returned>0),
-PRIMARY KEY (return_no, medicine_id, delivery_no),
+PRIMARY KEY (return_no, delivery_no, medicine_id),
 FOREIGN KEY (return_no) REFERENCES `return`(return_no),
-FOREIGN KEY (medicine_id, delivery_no) REFERENCES delivery_details(medicine_id, delivery_no) 
+FOREIGN KEY (delivery_no, medicine_id) REFERENCES delivery_details(delivery_no, medicine_id)
 );
+
 -- Prevent selling discontinued or expired medicine
 DELIMITER $$
 CREATE TRIGGER prevent_expired_or_discontinued_sale
@@ -224,7 +225,7 @@ VALUES
 (6, 8, '2024-08-01', '2024-08-05', 'Delivered'), -- Linked to 204, 205
 (7, 9, '2025-02-15', '2025-02-20', 'Delivered'), -- Linked to 401
 (8, 1, '2025-03-01', '2025-03-05', 'Delivered'), -- Linked to 402
-(9, 2, '2025-11-15', NULL, 'Requested'), -- For "Manage Delivery" test (Linked to 301, 302)
+(9, 2, '2025-11-15', NULL, 'Cancelled'), -- For "Manage Delivery" test (Linked to 301, 302)
 (10, 4, '2025-11-16', NULL, 'Cancelled'); -- For "Manage Delivery" test (Linked to 303)
 
 -- Delivery Details Records (Linking Deliveries to Medicine Batches)
@@ -282,8 +283,8 @@ VALUES
 (3, 2, 'Expired Batch', '2025-05-03', NULL, 'Cancelled'),     -- Linked to 203
 (4, 8, 'Expired Batch', '2025-05-04', '2025-05-06', 'Returned'), -- Linked to 204
 (5, 8, 'Discontinued', '2025-05-05', '2025-05-07', 'Returned'), -- Linked to 205
-(6, 9, 'Expired Batch', '2025-11-10', NULL, 'Requested'),     -- For "Manage Return" test (Linked to 401)
-(7, 1, 'Expired Batch', '2025-11-11', NULL, 'Requested'),     -- For "Manage Return" test (Linked to 402)
+(6, 9, 'Expired Batch', '2025-11-10', NULL, 'Cancelled'),     -- For "Manage Return" test (Linked to 401)
+(7, 1, 'Expired Batch', '2025-11-11', NULL, 'Cancelled'),     -- For "Manage Return" test (Linked to 402)
 (8, 1, 'Expired Batch', '2025-01-02', '2025-01-04', 'Returned'), -- For Report
 (9, 2, 'Expired Batch', '2025-02-02', '2025-02-04', 'Returned'), -- For Report
 (10, 1, 'Discontinued', '2025-06-02', NULL, 'Cancelled');    -- For Report
