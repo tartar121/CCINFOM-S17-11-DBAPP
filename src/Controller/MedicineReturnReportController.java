@@ -24,7 +24,7 @@ public class MedicineReturnReportController {
             WHERE MONTH(r.request_date) = ?
             AND YEAR(r.request_date) = ?
             GROUP BY m.medicine_id, m.medicine_name
-            ORDER BY total_amount_returned DESC
+            ORDER BY total_amount_returned 
         """;
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setInt(1, month);
